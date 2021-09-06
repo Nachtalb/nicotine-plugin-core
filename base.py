@@ -61,7 +61,7 @@ Check for updates on start and periodically''',
         self.log(f'Running version {__version__}')
 
     def _setup_commands(self):
-        default_prefix = self.plugin_config.get('prefix')
+        prefix = self.plugin_config.get('prefix')
 
         public_commands = self.__publiccommands__[:]
         private_commands = self.__privatecommands__[:]
@@ -84,8 +84,7 @@ Check for updates on start and periodically''',
                         self.log(f'No method named {callback} found or attribute is not callable')
                         continue
 
-                prefix = getattr(self, 'command_prefix', default_prefix)
-                if prefix:
+                if prefix and getattr(callback, 'command_prefix', True):
                     name = f'{prefix}-{name}'.rstrip('-')
                 target.append((name, callback))
 
