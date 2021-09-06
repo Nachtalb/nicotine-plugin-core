@@ -46,7 +46,7 @@ def _parse_according_to_spec(spec, value):
                 return
 
 
-def command(func_or_name, public=True, private=True, with_prefix=True):
+def command(func_or_name, public=True, private=True, with_prefix=True, threaded=True):
     name = None
 
     def outer_wrapper(func):
@@ -86,12 +86,12 @@ def command(func_or_name, public=True, private=True, with_prefix=True):
                             if value is None:
                                 continue
                             _kwargs[key] = value
-                    elif arg in parameters and (value := _parse_according_to_spec(parameters[arg], orig_arg)) is not None:
+                    elif arg in parameters and (value := _parse_according_to_spec(parameters[arg], orig_arg)) is not None:  # noqa
                         _kwargs[arg] = value
 
             curframe = inspect.currentframe()
             callframe = inspect.getouterframes(curframe, 2)
-            if callframe[1][3] == '_trigger_command':
+            if callframe[1][3] == '_trigger_command' and threaded:
                 Thread(target=func, args=(self, *extra_args, *_args), kwargs=_kwargs, daemon=True).start()
             else:
                 return func(self, *extra_args, *_args, **_kwargs)
