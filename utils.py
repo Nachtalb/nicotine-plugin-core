@@ -46,47 +46,65 @@ def _parse_according_to_spec(spec, value):
                 return
 
 
-def command(func):
-    @wraps(func)
-    def wrapper(self, initiator=None, argstring=None, *_args, **_kwargs):
-        if self == initiator:
-            initiator = argstring
-            argstring, _args = _args[0], _args[1:]
-        parameters = inspect.signature(func).parameters
-        command_args = list(map(str2num, filter(None, map(str.strip, (argstring or '').split()))))
-        extra_args = []
+def command(func_or_name, public=True, private=True, with_prefix=True):
+    name = None
 
-        if 'initiator' in parameters and 'initiator' not in _kwargs and initiator is not None:  # noqa
-            extra_args.append(initiator)
-        if 'args' in parameters and 'args' not in _kwargs and command_args:
-            extra_args.append(command_args)
-        elif command_args:
-            for arg in command_args:
-                if not isinstance(arg, str):
-                    continue
+    def outer_wrapper(func):
+        if name:
+            setattr(func, 'command_name', name)
+            setattr(func, 'command_public', public)
+            setattr(func, 'command_private', private)
+            setattr(func, 'command_prefix', with_prefix)
 
-                orig_arg = arg = arg.lstrip('-')
-                arg = arg.lower()
+        @wraps(func)
+        def wrapper(self, initiator=None, argstring=None, *_args, **_kwargs):
+            if self == initiator:
+                initiator = argstring
+                argstring, _args = _args[0], _args[1:]
+            parameters = inspect.signature(func).parameters
+            command_args = list(map(str2num, filter(None, map(str.strip, (argstring or '').split()))))
+            extra_args = []
 
-                if '=' in arg:
-                    key = arg.split('=')[0]
-                    value = orig_arg.split('=')
+            if 'initiator' in parameters and 'initiator' not in _kwargs and initiator is not None:  # noqa
+                extra_args.append(initiator)
+            if 'args' in parameters and 'args' not in _kwargs and command_args:
+                extra_args.append(command_args)
+            elif command_args:
+                for arg in command_args:
+                    if not isinstance(arg, str):
+                        continue
 
-                    if key and value and key in parameters:
-                        value = _parse_according_to_spec(parameters[key], value)
-                        if value is None:
-                            continue
-                        _kwargs[key] = value
-                elif arg in parameters and (value := _parse_according_to_spec(parameters[arg], orig_arg)) is not None:
-                    _kwargs[arg] = value
+                    orig_arg = arg = arg.lstrip('-')
+                    arg = arg.lower()
 
-        curframe = inspect.currentframe()
-        callframe = inspect.getouterframes(curframe, 2)
-        if callframe[1][3] == '_trigger_command':
-            Thread(target=func, args=(self, *extra_args, *_args), kwargs=_kwargs, daemon=True).start()
-        else:
-            return func(self, *extra_args, *_args, **_kwargs)
-    return wrapper
+                    if '=' in arg:
+                        key = arg.split('=')[0]
+                        value = orig_arg.split('=')
+
+                        if key and value and key in parameters:
+                            value = _parse_according_to_spec(parameters[key], value)
+                            if value is None:
+                                continue
+                            _kwargs[key] = value
+                    elif arg in parameters and (value := _parse_according_to_spec(parameters[arg], orig_arg)) is not None:
+                        _kwargs[arg] = value
+
+            curframe = inspect.currentframe()
+            callframe = inspect.getouterframes(curframe, 2)
+            if callframe[1][3] == '_trigger_command':
+                Thread(target=func, args=(self, *extra_args, *_args), kwargs=_kwargs, daemon=True).start()
+            else:
+                return func(self, *extra_args, *_args, **_kwargs)
+
+        return wrapper
+
+    if callable(func_or_name):
+        if not func_or_name.__name__.startswith('_'):
+            name = func_or_name.__name__.replace('_', '-')
+        return outer_wrapper(func_or_name)
+    else:
+        name = func_or_name
+        return outer_wrapper
 
 
 def str2num(string):

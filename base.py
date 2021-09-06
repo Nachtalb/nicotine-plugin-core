@@ -30,6 +30,9 @@ Check for updates on start and periodically''',
 
     plugin_config = dict([(key.lower(), value) for key, value in CONFIG.items()])
 
+    __publiccommands__ = []
+    __privatecommands__ = []
+
     @property
     def __name__(self):
         return self.plugin_config.get('name', self.__class__.__name__)
@@ -37,20 +40,16 @@ Check for updates on start and periodically''',
     update_version = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         settings = self.default_settings
         settings.update(self.settings)
         self.settings = settings
         metasettings = self.default_metasettings
         metasettings.update(self.metasettings)
         self.metasettings = metasettings
+        super().__init__(*args, **kwargs)
 
     def init(self):
-        default_commands = [
-            ('reload', self.reload),
-            ('update', self.check_update),
-        ]
-
+        self.log(self.__publiccommands__)
         self.auto_update = PeriodicJob(name='AutoUpdate',
                                        delay=3600 * 6,  # Every 6h
                                        update=self.check_update)
@@ -58,33 +57,46 @@ Check for updates on start and periodically''',
 
         self.settings_watcher = PeriodicJob(name='SettingsWatcher', update=self.detect_settings_change)
         self.settings_watcher.start()
-
-        if prefix := self.plugin_config.get('prefix'):
-            public_commands = self.__publiccommands__ + default_commands
-            self.__publiccommands__ = []
-            private_commands = self.__privatecommands__ + default_commands
-            self.__privatecommands__ = []
-            for name, callback in public_commands:
-                if name:
-                    name = '-' + name
-                self.__publiccommands__.append((prefix + name, callback))
-            for name, callback in private_commands:
-                if name:
-                    name = '-' + name
-                self.__privatecommands__.append((prefix + name, callback))
-        else:
-            for name, callback in default_commands:
-                name = f'{self.plugin_name}-{name}'
-                self.__publiccommands__.append((name, callback))
-                self.__privatecommands__.append((name, callback))
-
+        self._setup_commands()
         self.log(f'Running version {__version__}')
+
+    def _setup_commands(self):
+        default_prefix = self.plugin_config.get('prefix')
+
+        public_commands = self.__publiccommands__[:]
+        private_commands = self.__privatecommands__[:]
+        self.__privatecommands__ = []
+        self.__privatecommands__ = []
+
+        for method_name in dir(self):
+            method = getattr(self, method_name, None)
+            if name := getattr(method, 'command_name', None):
+                if getattr(method, 'command_public', True):
+                    public_commands.append((name, method))
+                if getattr(method, 'command_private', True):
+                    private_commands.append((name, method))
+
+        def parse_commands(source, target):
+            for name, callback in source:
+                if isinstance(callback, str):
+                    callback = getattr(self, callback, None)
+                    if not callable(callback):
+                        self.log(f'No method named {callback} found or attribute is not callable')
+                        continue
+
+                prefix = getattr(self, 'command_prefix', default_prefix)
+                if prefix:
+                    name = f'{prefix}-{name}'.rstrip('-')
+                target.append((name, callback))
+
+        parse_commands(public_commands, self.__publiccommands__)
+        parse_commands(private_commands, self.__privatecommands__)
 
     @property
     def plugin_name(self):
         return BASE_PATH.name
 
-    @command
+    @command('reload')
     def reload(self):
         def _reload(name, plugin_name, handler):
             log('#' * 80)
@@ -125,7 +137,7 @@ Check for updates on start and periodically''',
             return
         return f'https://github.com/{repo}/releases/tag/{self.update_version}'
 
-    @command
+    @command('update')
     def check_update(self, force=False):
         try:
             repo = self.plugin_config.get('repository')
@@ -158,8 +170,8 @@ Check for updates on start and periodically''',
     def stop(self):
         if hasattr(self, 'pre_stop'):
             self.pre_stop()
-        self.auto_update.stop(False)
-        self.settings_watcher.stop(False)
+        self.auto_update.stop()
+        self.settings_watcher.stop()
 
         # Module injection cleanup
         module_path = str(BASE_PATH.absolute())
