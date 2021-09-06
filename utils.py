@@ -46,12 +46,16 @@ def _parse_according_to_spec(spec, value):
                 return
 
 
-def command(func_or_name, public=True, private=True, with_prefix=True, threaded=True):
+def command(func_or_name=None, public=True, private=True, with_prefix=True, threaded=True):
     name = None
 
     def outer_wrapper(func):
-        if name:
-            setattr(func, 'command_name', name)
+        command_name = name
+        if not command_name and not func.__name__.startswith('_'):
+            command_name = func.__name__.replace('_', '-').strip('-')
+
+        if command_name:
+            setattr(func, 'command_name', command_name)
             setattr(func, 'command_public', public)
             setattr(func, 'command_private', private)
             setattr(func, 'command_prefix', with_prefix)
@@ -99,8 +103,6 @@ def command(func_or_name, public=True, private=True, with_prefix=True, threaded=
         return wrapper
 
     if callable(func_or_name):
-        if not func_or_name.__name__.startswith('_'):
-            name = func_or_name.__name__.replace('_', '-')
         return outer_wrapper(func_or_name)
     else:
         name = func_or_name
