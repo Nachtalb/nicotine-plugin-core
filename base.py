@@ -49,7 +49,6 @@ Check for updates on start and periodically''',
         super().__init__(*args, **kwargs)
 
     def init(self):
-        self.log(self.__publiccommands__)
         self.auto_update = PeriodicJob(name='AutoUpdate',
                                        delay=3600 * 6,  # Every 6h
                                        update=self.check_update)
@@ -70,7 +69,7 @@ Check for updates on start and periodically''',
 
         for method_name in dir(self):
             method = getattr(self, method_name, None)
-            if name := getattr(method, 'command_name', None):
+            if (name := getattr(method, 'command_name', None)) is not None:
                 if getattr(method, 'command_public', True):
                     public_commands.append((name, method))
                 if getattr(method, 'command_private', True):
@@ -87,7 +86,7 @@ Check for updates on start and periodically''',
                 if prefix and getattr(callback, 'command_prefix', True):
                     name = f'{prefix}-{name}'.rstrip('-')
                 target.append((name, callback))
-            target.sort()
+            target.sort(key=lambda i: i[0])
 
         parse_commands(public_commands, self.__publiccommands__)
         parse_commands(private_commands, self.__privatecommands__)

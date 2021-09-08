@@ -51,10 +51,10 @@ def command(func_or_name=None, public=True, private=True, with_prefix=True, thre
 
     def outer_wrapper(func):
         command_name = name
-        if not command_name and not func.__name__.startswith('_'):
+        if command_name is None and not func.__name__.startswith('_'):
             command_name = func.__name__.replace('_', '-').strip('-')
 
-        if command_name:
+        if command_name is not None:
             setattr(func, 'command_name', command_name)
             setattr(func, 'command_public', public)
             setattr(func, 'command_private', private)
