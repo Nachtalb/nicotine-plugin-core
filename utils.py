@@ -83,7 +83,7 @@ def command(func_or_name=None, public=True, private=True, with_prefix=True, thre
 
                     if '=' in arg:
                         key = arg.split('=')[0]
-                        value = orig_arg.split('=')
+                        value = orig_arg.split('=')[1]
 
                         if key and value and key in parameters:
                             value = _parse_according_to_spec(parameters[key], value)
