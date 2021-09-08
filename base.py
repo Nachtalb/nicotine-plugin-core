@@ -87,6 +87,7 @@ Check for updates on start and periodically''',
                 if prefix and getattr(callback, 'command_prefix', True):
                     name = f'{prefix}-{name}'.rstrip('-')
                 target.append((name, callback))
+            target.sort()
 
         parse_commands(public_commands, self.__publiccommands__)
         parse_commands(private_commands, self.__privatecommands__)
@@ -169,8 +170,8 @@ Check for updates on start and periodically''',
     def stop(self):
         if hasattr(self, 'pre_stop'):
             self.pre_stop()
-        self.auto_update.stop()
-        self.settings_watcher.stop()
+        self.auto_update.stop(wait=False)
+        self.settings_watcher.stop(wait=False)
 
         # Module injection cleanup
         module_path = str(BASE_PATH.absolute())
