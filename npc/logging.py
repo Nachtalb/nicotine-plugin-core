@@ -1,6 +1,7 @@
 """This module provides a easy to use and typed logging function for Nicotine+
 
 Todo:
+
     * Add support for logging to a file other than Nicotine+'s log file
     * Add support for a real :class:`logging.Handler` object wrapping Nicotine+'s log
 
@@ -50,10 +51,10 @@ def log(
 
     Args:
         message (:obj:`str`): Message to be logged
-        message_args (:obj:`Any`) : Arguments to be formatted in the message.
+        message_args (:obj:`typing.Any`) : Arguments to be formatted in the message.
             Common log python log arguments such as ``%s``, ``%d``, etc. can
             be used
-        level (:obj:`LogLevel`, optional): Log level, will be prefixed to the
+        level (:obj:`npc.types.LogLevel`, optional): Log level, will be prefixed to the
             message in the format ``[LEVEL]: message``
         prefix (:obj:`str`, optional): Prefix to be added to the message, will
             be prefixed to the message in the format "PREFIX: message"

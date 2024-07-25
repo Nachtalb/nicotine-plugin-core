@@ -58,8 +58,8 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
             class Plugin(BasePlugin):
                 class Config(BasePlugin.Config):
-                    setting1 = Bool("setting1", "Setting 1", True)
-                    setting2 = Int("setting2", "Setting 2", 10)
+                    setting1 = Bool("Setting 1", True)
+                    setting2 = Int("Setting 2", 10)
 
                 @command(parameters=["<name>", "<age>"])
                 def hello(self, name: str, age: int) -> None:
@@ -68,37 +68,49 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
 
     Attributes:
-        settings (:obj:`Settings`): Plugin settings dictionary. Don't override
+        settings (:obj:`npc.types.Settings`): Plugin settings dictionary. Don't override
             this by yourself. It's automatically built from the settings in the
             :attr:`BasePlugin.Config`.
-        metasettings (:obj:`MetaSettings`): Plugin meta settings dictionary. Don't
+        metasettings (:obj:`npc.types.MetaSettings`): Plugin meta settings dictionary. Don't
             override this by yourself. It's automatically built from the settings
             in the :attr:`BasePlugin.Config`.
         config (:obj:`BaseConfig`): Plugin configuration instance of the class
             :attr:`BasePlugin.Config`.
-        plugin_config (:obj:`PluginConfig`): Information about the plugin itself,
+        plugin_config (:obj:`npc.types.PluginConfig`): Information about the plugin itself,
             such as the name, version and authors.
-        plugin_name (:obj:`str`): Name of the plugin
-        auto_update (:obj:`PeriodicJob`): Periodic job for checking if the
-            plugin is up to date. It runs the :meth:`BasePlugin._check_update`
+        auto_update (:obj:`npc.PeriodicJob`): Periodic job for checking if the
+            plugin is up to date. It runs the :meth:`BasePlugin.check_update`
             function every :attr:`BasePlugin.Config.check_update_interval` seconds.
-        settings_watcher (:obj:`PeriodicJob`): Periodic job for watching changes
+        settings_watcher (:obj:`npc.PeriodicJob`): Periodic job for watching changes
             in the settings. It runs the :meth:`BasePlugin.detect_settings_change`
             function every second.
-        commands (:obj:`Commands`): Dictionary of commands. Don't override this
+        commands (:obj:`npc.types.Commands`): Dictionary of commands. Don't override this
             it is built automatically. Use the :func:`npc.command` decorator to
             add commands to the plugin.
-        __publiccommands__ (:obj:`LegacyCommands`): Deprecated: Legacy list of
+        __publiccommands__ (:obj:`npc.types.LegacyCommands`): Deprecated: Legacy list of
             public commands. Use :attr:`BasePlugin.commands` instead.
-        __privatecommands__ (:obj:`LegacyCommands`): Deprecated: Legacy list of
+        __privatecommands__ (:obj:`npc.types.LegacyCommands`): Deprecated: Legacy list of
             private commands. Use :attr:`BasePlugin.commands` instead.
     """
 
     class Config(BaseConfig):
-        check_update = Bool("check_update", "Check for updates", True)
-        check_update_interval = Int("check_update_interval", "Update check interval (minutes)", 60 * 6)
-        preview_versions = Bool("preview_versions", "Check for preview versions", "dev" in __version__)
-        verbose = Bool("verbose", "Verbose logging", True)
+        """Default configuration for plugins made with :class:`BasePlugin`
+
+        The default configuration includes settings for checking for updates and
+        the update check interval. You can add your own settings by inheriting
+        from this class and adding your own settings.
+
+        Attributes:
+            check_update (:obj:`Bool`): Check for updates
+            check_update_interval (:obj:`Int`): Update check interval in minutes
+            preview_versions (:obj:`Bool`): Check for preview versions
+            verbose (:obj:`Bool`): Verbose logging
+        """
+
+        check_update = Bool(description="Check for updates", default=True)
+        check_update_interval = Int(description="Update check interval (minutes)", default=60 * 6)
+        preview_versions = Bool(description="Check for preview versions", default="dev" in __version__)
+        verbose = Bool(description="Verbose logging", default=True)
 
     settings: Settings
     metasettings: MetaSettings
@@ -278,7 +290,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             List values are converted to tuples to be hashable and comparable
 
         Args:
-            settings (:obj:`Settings`): Settings to convert (before or after)
+            settings (:obj:`npc.types.Settings`): Settings to convert (before or after)
 
         Returns:
             :obj:`set` of :obj:`tuple`: Set of tuples of settings key-value pairs
@@ -301,7 +313,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             set_ (:obj:`set` of :obj:`tuple`): Set of tuples of settings key-value pairs
 
         Returns:
-            :obj:`Settings`: Settings dictionary
+            :obj:`npc.types.Settings`: Settings dictionary
         """
         return {k: list(v) if isinstance(v, tuple) else v for k, v in set_}
 
@@ -339,9 +351,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             this function to handle the settings changes.
 
         Args:
-            before (:obj:`Settings`): Complete settings before the change
-            after (:obj:`Settings`): Complete settings after the change
-            change (:obj:`SettingsDiff`): Dictionary of changes in the settings
+            before (:obj:`npc.types.Settings`): Complete settings before the change
+            after (:obj:`npc.types.Settings`): Complete settings after the change
+            change (:obj:`npc.types.SettingsDiff`): Dictionary of changes in the settings
         """
         self.log(f"Settings change: {json.dumps(change)}")
 
@@ -352,7 +364,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
         Args:
             message (:obj:`str`): Message to be logged
-            message_args (:obj:`Any`): Arguments to be formatted in the message.
+            message_args (:obj:`typing.Any`): Arguments to be formatted in the message.
                 Common log python log arguments such as %s, %d, etc. can be used
         """
         if self.settings.get("verbose", False):

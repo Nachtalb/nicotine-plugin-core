@@ -38,7 +38,7 @@ Note:
     * The command will not be daemonized by default (blocking the main thread)
     * The command will parse arguments according to the function's annotations by default
 
-    .. seealso:: :func:`command` for more information on the parameters
+    .. seealso:: :func:`npc.command` for more information on the parameters
 """
 
 import inspect
@@ -79,11 +79,11 @@ def _parse_according_to_annotation(annotation: Any, value: Any) -> Any:
         * NoneType
 
     Args:
-        annotation (:obj:`Any`): Annotation to be used for parsing (type hint)
-        value (:obj:`Any`): Value to be parsed
+        annotation (:obj:`typing.Any`): Annotation to be used for parsing (type hint)
+        value (:obj:`typing.Any`): Value to be parsed
 
     Returns:
-        :obj:`Any`: Parsed value
+        :obj:`typing.Any: Parsed value
     """
     origin = get_origin(annotation) or annotation
     args = get_args(annotation)
@@ -257,18 +257,18 @@ def command(
 ) -> Union[DefaultCallback, Callable[[F], DefaultCallback]]:
     """Decorator to define a command
 
-    .. seealso:: :class:`Command` for more information on the parameters
+    .. seealso:: :class:`npc.types.Command` for more information on the parameters
 
     Args:
-        func_or_name (:obj:`str` | :obj:`Callback`, optional): Name of the
+        func_or_name (:obj:`str` | :obj:`npc.types.Callback`, optional): Name of the
             command or the function to be decorated
         description (:obj:`str`, optional): Description of the command, will be
             extracted from the function's docstring if not provided
         aliases (:obj:`list` of :obj:`str`, optional): List of aliases that can
             be used to call the command
-        disabled_interfaces (:obj:`list` of :obj:`CommandInterface`, optional):
+        disabled_interfaces (:obj:`list` of :obj:`npc.types.CommandInterface`, optional):
             List of CommandInterfaces that the command should be disabled for
-        group (:obj:`str` | :obj:`CommandGroup`, optional): Group used to group
+        group (:obj:`str` | :obj:`npc.types.CommandGroup`, optional): Group used to group
             the command in the command help window
         parameters (:obj:`list` of :obj:`str`, optional): List of parameters that
             are required to call the command everywhere unless overridden by
@@ -282,15 +282,15 @@ def command(
         daemonize (:obj:`bool`, optional): Whether the command should be run in
             a separate thread. These threads are daemons and will not block the
             main thread. This also means that the return value of the function
-            is predefined as :attr:`ReturnCode.PASS` or set via
+            is predefined as :attr:`npc.types.ReturnCode.PASS` or set via
             :paramref:`daemonize_return`
-        daemonize_return (:obj:`ReturnCode`, optional): Return code to be returned
-            when the command is daemonized, default is :attr:`ReturnCode.PASS`
+        daemonize_return (:obj:`npc.types.ReturnCode`, optional): Return code to be returned
+            when the command is daemonized, default is :attr:`npc.types.ReturnCode.PASS`
         parse_args (:obj:`bool`, optional): Whether the arguments should be parsed
             according to the function's annotations
 
     Returns:
-        :obj:`Callable`: Decorator if only the options are provided, else the
+        :obj:`typing.Callable`: Decorator if only the options are provided, else the
             decorated function
 
     Raises:

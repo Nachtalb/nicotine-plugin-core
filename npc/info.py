@@ -1,7 +1,7 @@
 """Plugin information and configuration
 
 This module provides information about the plugin and its configuration.
-The plugin configuration is loaded from the `PLUGININFO` file in the plugin
+The plugin configuration is loaded from the ``PLUGININFO`` file in the plugin
 directory. The configuration file should look like this:
 
 .. code-block:: ini
@@ -14,13 +14,13 @@ directory. The configuration file should look like this:
     REPOSITORY="User/MyPlugin"
 
 Note:
-    * The `PREFIX` is optional and will be used as the command prefix for the
-        plugin. Additionally if version contains `dev` the prefix will be
-        `d{PREFIX}` to indicate that it is a development version and prevent
-        conflicts with the stable version.
-    * The `REPOSITORY` is optional and should be in the format `User/Repository`
-        or a URL to the GitHub repository. This enables automated checks for
-        updates.
+    * The ``PREFIX`` is optional and will be used as the command prefix for the
+      plugin. Additionally if version contains `dev` the prefix will be
+      ``d{PREFIX}`` to indicate that it is a development version and prevent
+      conflicts with the stable version.
+    * The ``REPOSITORY`` is optional and should be in the format
+      ``User/Repository`` or a URL to the GitHub repository. This enables
+      automated checks for updates.
 """
 
 import ast
@@ -37,10 +37,10 @@ def load_config(path: Path) -> PluginConfig:
     """Load the plugin configuration from the given file
 
     Args:
-        path (:obj:`Path`): Path to the configuration file
+        path (:obj:`pathlib.Path`): Path to the configuration file
 
     Returns:
-        :obj:`PluginConfig`: Plugin configuration
+        :obj:`npc.types.PluginConfig`: Plugin configuration
     """
     content = path.read_text()
     config = PluginConfig(
@@ -73,10 +73,10 @@ def find_file_in_parents(file: str, start: Path) -> Optional[Path]:
 
     Args:
         file (:obj:`str`): File to search for
-        start (:obj:`Path`): Path to start the search from
+        start (:obj:`pathlib.Path`): Path to start the search from
 
     Returns:
-        :obj:`Path` | :obj:`None`: Path to the file or None if not found
+        :obj:`pathlib.Path` | :obj:`None`: Path to the file or None if not found
     """
     path = start
     while path != path.parent:

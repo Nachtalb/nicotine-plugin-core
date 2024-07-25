@@ -85,7 +85,7 @@ class Response:
             attr (:obj:`str`): Attribute to get (e.g. status, headers, etc.
 
         Returns:
-            :obj:`Any`: Value of the attribute
+            :obj:`typing.Any: Value of the attribute
         """
         if attr in self.__dict__:
             return getattr(self, attr)
@@ -156,7 +156,7 @@ def post(
 
     Args:
         url (:obj:`str`): URL to make the request to including the query parameters
-        data (:obj:`bytes` | :obj:`Iterable` | :obj:`Readable`, optional): Raw bytes data to be sent with the request
+        data (:obj:`bytes` | :obj:`Iterable` | :obj:`npc.types.Readable`, optional): Raw bytes data to be sent with the requestrequest
         headers (:obj:`dict`, optional): Dict of headers to be sent with the request
         timeout (:obj:`int`, optional): Timeout for the request in seconds
 

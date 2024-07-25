@@ -3,6 +3,8 @@ some enums and typeddict that define undocumdent Nicotine+ features. As they are
 undocumented in by Nicotine+ itself, they may be subject to change in the future.
 """
 
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, Protocol, Tuple, TypedDict, TypeVar, Union
 
@@ -37,7 +39,6 @@ class LogLevel(str, Enum):
     """ "Log Levels" for the logger. They just prefix the message with [LEVEL]
 
     Attributes:
-        DEFAULT: Default log level
         DOWNLOAD: Log level for download messages
         UPLOAD: Log level for upload messages
         SEARCH: Log level for search messages
@@ -49,6 +50,7 @@ class LogLevel(str, Enum):
     """
 
     DEFAULT = "default"
+    """Default log level"""
     DOWNLOAD = "download"
     UPLOAD = "upload"
     SEARCH = "search"
@@ -107,8 +109,8 @@ class SettingsDiff(TypedDict):
     """Difference between two settings
 
     Attributes:
-        before (:obj:`Dict[str, Any]`): Old settings
-        after (:obj:`Dict[str, Any]`): New settings
+        before (:obj:`Dict`): Old settings
+        after (:obj:`Dict`): New settings
     """
 
     before: Dict[str, Any]
@@ -225,16 +227,16 @@ class ReturnCode(Enum):
 class CommandGroup(str, Enum):
     """Existing command groups.
 
-    Command groups are used to group commands together in the command help window (via /help or the ? button).
+    Command groups are used to group commands together in the command help window (via ``/help`` or the ``?`` button).
 
     Attributes:
-        CHAT: Chat commands (e.g. /away)
-        CHAT_ROOMS: Chat room commands (e.g. /join <room>)
-        PRIVATE_CHAT: Private chat commands (e.g. /pm <user>)
-        USERS: User commands (e.g. /buddy <user>)
-        NETWORK_FILTERS: Network filter commands (e.g. /ban <user or ip>)
-        SHARES: Commands for managing shared files / folders (e.g. /rescan [force|rebuild])
-        SEARCH_FILES: Search files commands (e.g. /search <query>)
+        CHAT: Chat commands (e.g. ``/away``)
+        CHAT_ROOMS: Chat room commands (e.g. ``/join <room>``)
+        PRIVATE_CHAT: Private chat commands (e.g. ``/pm <user>``)
+        USERS: User commands (e.g. ``/buddy <user>``)
+        NETWORK_FILTERS: Network filter commands (e.g. ``/ban <user or ip>``)
+        SHARES: Commands for managing shared files / folders (e.g. ``/rescan [force|rebuild]``)
+        SEARCH_FILES: Search files commands (e.g. ``/search <query>``)
     """
 
     CHAT = "CHAT"
@@ -271,7 +273,7 @@ DefaultCallback = Callable[[str, Optional[str], Optional[str]], Optional[ReturnC
 Arguments:
     args (:obj:`str`): List of arguments passed to the command as a single string
     room (:obj:`str`, optional): Room name where the command was called
-    user (:obj:`str, optional): User name who called the command
+    user (:obj:`str`, optional): User name who called the command
 
 Returns:
     ReturnCode or None which is equivalent to ReturnCode.PASS

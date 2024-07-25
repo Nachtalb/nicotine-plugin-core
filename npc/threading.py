@@ -46,17 +46,17 @@ class PeriodicJob(Thread):
             job.stop()
 
     Args:
-        update (:obj:`Callable[..., Any]`): Function to run every delay seconds
-        delay (:obj:`Union[int, Callable[..., int]]`, optional): Delay between updates in seconds
+        update (:obj:`Callable`): Function to run every delay seconds
+        delay (:obj:`int` | :obj:`Callable`, optional): Delay between updates in seconds
             as an integer or a function returning an integer
         name (:obj:`str`, optional): Name of the thread
-        before_start (:obj:`Optional[Callable[..., Any]]`, optional): Function to run before the thread starts
+        before_start (:obj:`Callable`, optional): Function to run before the thread starts
         min_delay (:obj:`int`, optional): Minimum delay between checks in seconds
 
     Attributes:
-        update (:obj:`Callable[..., Any]`): Function to run every delay seconds
-        before_start (:obj:`Optional[Callable[..., Any]]`): Function to run before the thread starts
-        delay (:obj:`Union[int, Callable[..., int]]`): Delay between updates in seconds
+        update (:obj:`Callable`): Function to run every delay seconds
+        before_start (:obj:`Callable`, optional): Function to run before the thread starts
+        delay (:obj:`int` | :obj:`Callable`): Delay between updates in seconds
         last_run (:obj:`float`): Time of the last update
     """
 
@@ -133,7 +133,7 @@ class PeriodicJob(Thread):
         """Run the thread
 
         Warning:
-            Do not call this method directly, use :meth:`start` instead.
+            Do not call this method directly, use :meth:`threading.Thread.start` instead.
         """
         if self.before_start:
             self.before_start()

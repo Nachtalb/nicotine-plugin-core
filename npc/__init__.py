@@ -1,6 +1,20 @@
 from .base import BasePlugin
 from .command import command
-from .config import BaseConfig, Bool, Checkbox, Dropdown, Float, Int, ListString, Number, Radio, String, Text, TextArea
+from .config import (
+    BaseConfig,
+    Bool,
+    Checkbox,
+    Dropdown,
+    Float,
+    Int,
+    ListString,
+    Number,
+    Radio,
+    String,
+    Text,
+    TextArea,
+    TextView,
+)
 from .info import BASE_PATH, CONFIG, __version__
 from .logging import log
 from .requests import Response, get, post
@@ -72,6 +86,7 @@ __all__ = [
     "String",
     "Text",
     "TextArea",
+    "TextView",
     "Version",
     "__version__",
     "command",

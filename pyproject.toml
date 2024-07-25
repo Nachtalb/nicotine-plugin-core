@@ -17,6 +17,17 @@ mypy = "^1.11.0"
 ipdb = "^0.13.13"
 pre-commit = "^3.7.1"
 
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.4.7"
+furo = "^2024.7.18"
+furo-sphinx-search = { git = "https://github.com/harshil21/furo-sphinx-search" }
+sphinx-paramlinks = "^0.6.0"
+sphinx-copybutton = "^0.5.2"
+sphinx-inline-tabs = "^2023.4.21"
+sphinxcontrib-mermaid = "^0.9.2"
+enum-tools = { extras = ["sphinx"], version = "^0.12.0" }
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -41,5 +52,5 @@ pretty = true
 strict = true
 
 [[tool.mypy.overrides]]
-module = "pynicotine.*"
+module = ["pynicotine.*", "sphinx.*"]
 ignore_missing_imports = true
