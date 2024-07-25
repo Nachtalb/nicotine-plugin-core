@@ -15,12 +15,12 @@ Example:
             @command
             def hello(self) -> None:
                 \"""Say hello to the world\"""
-                self.log("Hello World!")
+                self.log.info("Hello World!")
 
             @command(parameters=["<name>", "<age>"])
             def greet(self, name: str, age: int) -> None:
                 \"""Greet a person by name and age\"""
-                self.window_log(f"Hello {name}, you are {age} years old")
+                self.window(f"Hello {name}, you are {age} years old")
 
             @command("custom-name", description="Via decorator instead of docstring")
             def other_name(self) -> None:
@@ -54,7 +54,7 @@ except ImportError:
     NoneType = type(None)
 
 
-from .logging import log
+from .logging import LOGGER, log
 from .types import AnyInputCallback, Callback, Command, CommandGroup, CommandInterface, DefaultCallback, ReturnCode
 
 if TYPE_CHECKING:
@@ -361,10 +361,10 @@ def command(
                             )
                             return ReturnCode.BREAK
                 final_args = new_args
-                log(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Parsed")
+                LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Parsed")
             else:
                 final_args = [args, room, user]
-                log(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Not Parsed")
+                LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Not Parsed")
 
             if daemonize:
                 Thread(target=func, args=(self, final_args), daemon=True).start()

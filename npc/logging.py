@@ -1,11 +1,32 @@
 """This module provides a easy to use and typed logging function for Nicotine+
 
-Todo:
-
-    * Add support for logging to a file other than Nicotine+'s log file
-    * Add support for a real :class:`logging.Handler` object wrapping Nicotine+'s log
-
 Example:
+
+    Using a python logging.Logger
+
+    .. code-block:: python
+
+        from npc.logging import LOGGER
+
+        LOGGER.setLevel(logging.DEBUG)
+        LOGGER.debug("Hello World!")
+
+    Customizing the Logger
+
+    .. code-block:: python
+
+        import logging
+        from npc.logging import NLogHandler
+
+        handler = NLogHandler()
+        format = logging.Formatter("%(levelname)s - %(message)s")
+        handler.setFormatter(format)
+        own_logger = logging.Logger("MyPlugin")
+        own_logger.addHandler(handler)
+
+        own_logger.info("Hello World!")
+
+    Using the log function
 
     .. code-block:: python
 
@@ -21,13 +42,61 @@ Example:
         # Opens a window with the title "MyPlugin" and the message "Hello World!"
 """
 
+import logging
 from typing import Any, Optional
 
 from pynicotine.logfacility import log as nlog
 
+from .info import CONFIG
 from .types import LogLevel
 
-__all__ = ["log", "LogLevel"]
+__all__ = ["log", "LOGGER", "NLogHandler"]
+
+
+class NLogHandler(logging.Handler):
+    """Custom logging handler for Nicotine+
+
+    This handler will emit log records using Nicotine+'s log facility.
+
+    Example:
+
+        .. code-block:: python
+
+            import logging
+            from npc.logging import NLogHandler
+
+            # Create a handler
+            handler = NLogHandler()
+
+            # Set the formatter
+            format = logging.Formatter("%(levelname)s - %(message)s")
+            handler.setFormatter(format)
+
+            # Create a logger
+            logger = logging.Logger("MyPlugin")
+            logger.addHandler(handler)
+
+            # Log a message
+            logger.info("Hello World!")
+
+
+    .. seealso:: :class:`logging.Handler` for more information on logging handlers
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit a log record using Nicotine+'s log facility
+
+        Args:
+            record (:obj:`logging.LogRecord`): Log record to be emitted
+        """
+        # Convert the log record to a string
+        message = self.format(record)
+
+        # Call the nlog._add method
+        nlog._add(msg=message, msg_args={})
 
 
 def log(
@@ -80,3 +149,31 @@ def log(
         level=level,
         should_log_file=should_log_to_file,
     )
+
+
+handler = NLogHandler()
+format = logging.Formatter(
+    "%(name)s - %(levelname)s - %(message)s"
+)  # %(asctime)s not needed as it's already added by n+
+handler.setFormatter(format)
+
+LOGGER = logging.Logger(CONFIG["name"])
+LOGGER.addHandler(handler)
+LOGGER.__doc__ = """
+Your typical :class:`logging.Logger` logging to Nicotine+'s log facility
+
+* It uses the :class:`npc.logging.NLogHandler` to emit log records
+* It is already configured with the plugin's name
+* It uses the format ``%(name)s - %(levelname)s - %(message)s``. Time is
+  already added by Nicotine+
+
+
+Example:
+
+        .. code-block:: python
+
+            from npc.logging import LOGGER
+
+            LOGGER.setLevel(logging.DEBUG)
+            LOGGER.debug("Hello World!")
+"""

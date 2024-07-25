@@ -16,7 +16,7 @@ from .config import (
     TextView,
 )
 from .info import BASE_PATH, CONFIG, __version__
-from .logging import log
+from .logging import LOGGER, log
 from .requests import Response, get, post
 from .threading import PeriodicJob
 from .types import (
@@ -64,6 +64,7 @@ __all__ = [
     "FileChooser",
     "Float",
     "Int",
+    "LOGGER",
     "LegacyCommands",
     "ListString",
     "LogLevel",

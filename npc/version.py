@@ -18,8 +18,6 @@ Example:
 import re
 from typing import Optional, Union
 
-from .logging import log
-
 __all__ = ["Version"]
 
 
@@ -100,7 +98,6 @@ class Version:
         Raises:
             :obj:`ValueError`: If version cannot be parsed
         """
-        log("Version.parse: %s", version)
         if len(version) == 1 and isinstance(version[0], str):
             match = re.match(r"v?(\d+)\.?(\d+)?\.?(\d+)?\.?(\w+)?", version[0])
             if not match:

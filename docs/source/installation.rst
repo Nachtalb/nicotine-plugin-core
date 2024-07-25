@@ -99,7 +99,7 @@ Here is a bit larger example for a plugin:
       def init(self) -> None:
           super().init()
 
-          self.vlog("Verbose logging")  # checks if self.config.verbose is True before logging
+          self.log.debug("Verbose logging")  # checks if self.config.verbose is True before logging
 
           # Do something once the plugin is loaded
 
@@ -123,23 +123,23 @@ Here is a bit larger example for a plugin:
           """Say hello to the world."""
           age += 1  # age: int - will automagically get parsed to an int
 
-          self.window_log("Hello, %s! In a year you will be %d years old.", name, age)
+          self.window("Hello, %s! In a year you will be %d years old.", name, age)
 
       @command(parameters=["[n]"], aliases=["inc"])  # Parameters with [] are optional
       def increment(self, n: int = 1) -> None:
           """Increment the counter."""
           self.config.counter += n
           self.config.apply()  # Persist settings change across sessions
-          self.log("Counter is now at %d", self.config.counter)  # normal logging to the console
+          self.log.info("Counter is now at %d", self.config.counter)  # normal logging to the console
 
       @command(parameters=["[n]"], aliases=["dec"])  # Aliases are additional names for the command
       def decrement(self, n: int = 1) -> None:
           """Decrement the counter."""
           self.config.counter -= n
           self.config.apply()  # Persist settings change across sessions
-          self.log("Counter is now at %d", self.config.counter)
+          self.log.info("Counter is now at %d", self.config.counter)
 
       @command(disabled_interfaces=[CommandInterface.CHATROOM])  # Disable the command in the chatroom
       def secret(self) -> None:
           """This command is a secret."""
-          self.window_log("You can't run this command in the chatroom. It's a secret!")
+          self.window("You can't run this command in the chatroom. It's a secret!")

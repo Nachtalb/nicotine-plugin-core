@@ -2,10 +2,13 @@
 import os
 import subprocess
 import webbrowser
+from pathlib import Path
+
+BASE_PATH = Path(__file__).resolve().parent
 
 
 def build_docs() -> None:
-    docs_dir = os.path.join(os.getcwd(), "docs")
+    docs_dir = BASE_PATH / "docs"
     os.chdir(docs_dir)
     subprocess.run(["make", "html"])
 

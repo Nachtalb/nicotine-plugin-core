@@ -28,7 +28,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from .logging import log
+from pynicotine.logfacility import log as nlog
+
 from .types import PluginConfig
 
 __all__ = ["BASE_PATH", "CONFIG", "__version__"]
@@ -62,7 +63,9 @@ def load_config(path: Path) -> PluginConfig:
 
     if "dev" in config["version"]:
         if config["prefix"]:
-            log("#" * 40 + f'\nAttention: You are running this in dev mode. Prefix will be /d{config["prefix"]}')
+            nlog(
+                f'{config["name"]} - WARNING - Attention: You are running this in dev mode. Prefix will be /d{config["prefix"]}'
+            )
             config["prefix"] = "d" + config["prefix"]
         config["name"] += " DEV"
 

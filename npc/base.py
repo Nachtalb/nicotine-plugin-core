@@ -17,6 +17,7 @@ import json
 import re
 import sys
 from abc import ABC
+from logging import Formatter, Logger
 from pathlib import Path
 from textwrap import dedent
 from threading import Thread
@@ -27,10 +28,10 @@ from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 from .command import command
 from .config import BaseConfig, Bool, Int
 from .info import BASE_PATH, CONFIG, __version__
-from .logging import log
+from .logging import NLogHandler, log
 from .requests import get
 from .threading import PeriodicJob
-from .types import Commands, LegacyCommands, LogLevel, MetaSettings, PluginConfig, ReturnCode, Settings, SettingsDiff
+from .types import Commands, LegacyCommands, MetaSettings, PluginConfig, ReturnCode, Settings, SettingsDiff
 from .utils import reload_plugin
 from .version import Version
 
@@ -64,7 +65,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 @command(parameters=["<name>", "<age>"])
                 def hello(self, name: str, age: int) -> None:
                     \"\"\"Hello command\"\"\"
-                    self.window_log(f"Hello {name}, you are {age} years old", title="Welcome")
+                    self.window(f"Hello {name}, you are {age} years old", title="Welcome")
 
 
     Attributes:
@@ -91,6 +92,8 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             public commands. Use :attr:`BasePlugin.commands` instead.
         __privatecommands__ (:obj:`npc.types.LegacyCommands`): Deprecated: Legacy list of
             private commands. Use :attr:`BasePlugin.commands` instead.
+        log (:obj:`logging.Logger`): Logger instance for the plugin. It's named after
+            the plugin name.
     """
 
     class Config(BaseConfig):
@@ -133,6 +136,14 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.settings = self.config.model_settings()
         self.metasettings = self.config.model_metasettings()
 
+        handler = NLogHandler()
+        format = Formatter(
+            "%(name)s - %(levelname)s - %(message)s"
+        )  # %(asctime)s not needed as it's already added by n+
+        handler.setFormatter(format)
+        self.log = Logger(self.__name__)
+        self.log.addHandler(handler)
+
         self._setup_commands()
 
     def init(self) -> None:
@@ -141,7 +152,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         This function is called after the user settings are loaded. It's a good
         place to do any setup that requires the user settings to be loaded.
         """
-        self.vlog("Initializing plugin")
+        self.log.debug("Initializing plugin")
         self.auto_update = PeriodicJob(
             name="AutoUpdate",
             delay=self.config.check_update_interval * 60,
@@ -152,14 +163,16 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.settings_watcher = PeriodicJob(name="SettingsWatcher", update=self.detect_settings_change)
         self.settings_watcher.start()
 
+        self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+
         if self.plugin_config["version"]:
-            self.log("Running version %s", self.plugin_config["version"])
+            self.log.info("Running version %s", self.plugin_config["version"])
         else:
-            self.log("No version defined in plugin config")
+            self.log.info("No version defined in plugin config")
 
     def _setup_commands(self) -> None:
         """Setup commands from methods decorated with @command"""
-        self.vlog("Setting up commands")
+        self.log.debug("Setting up commands")
         prefix = self.plugin_config.get("prefix")
 
         methods = inspect.getmembers(self, predicate=inspect.ismethod)
@@ -170,9 +183,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 command_name = f"{prefix}{command_name}" if prefix else command_name
                 command["callback"] = method
                 self.commands[command_name] = command
-                self.vlog(f"Command {command_name} added {command['callback']}, {method}")
+                self.log.debug(f"Command {command_name} added {command['callback']}, {method}")
 
-        self.vlog(f"Commands setup complete: {self.commands}")
+        self.log.debug(f"Commands setup complete: {self.commands}")
 
     @property
     def plugin_name(self) -> str:
@@ -201,7 +214,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
         repo_url = self.plugin_config.get("repository")
         if not repo_url:
-            self.log("No repository defined for this plugin, disabling update check")
+            self.log.info("No repository defined for this plugin, disabling update check")
             self.config.check_update = False
             self.config.apply()
             return None
@@ -223,13 +236,13 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         try:
             current_version = Version.parse(__version__)
         except ValueError:
-            self.log(f"Invalid version format: {__version__}")
+            self.log.warning(f"Invalid version format: {__version__}")
             return None
 
         try:
             response = get(releases_url)
         except Exception as e:
-            self.log(f"Error fetching releases: {e}")
+            self.log.warning(f"Error fetching releases: {e}")
             return None
         for release in response.json:
             if not preview and (release["draft"] or release["prerelease"]):
@@ -238,12 +251,12 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             try:
                 version = Version.parse(release["tag_name"][1:])
             except ValueError:
-                self.log(f"Invalid version format: {release['tag_name']}")
+                self.log.warning(f"Invalid version format: {release['tag_name']}")
                 continue
 
             if version > current_version:
                 if not self._informed_about_update:
-                    self.window_log(
+                    self.window(
                         dedent(
                             f"""
                         A new version of the plugin \"{self.__name__}\" is available:
@@ -254,7 +267,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                         title="Update available",
                     )
                 else:
-                    self.log(f"New version available: {current_version} -> {version}")
+                    self.log.info(f"New version available: {current_version} -> {version}")
                 self._informed_about_update = True
                 return version
         return None
@@ -346,74 +359,33 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
     def settings_changed(self, before: Settings, after: Settings, change: SettingsDiff) -> None:
         """Called when settings are changed
 
-        Note:
-            By default, this function logs the changes in the settings. Override
-            this function to handle the settings changes.
+        This function is called when settings are changed. It's a good place to
+        react to settings changes. The default implementation logs the changes
+        and updates the log level if the verbose setting is changed.
 
         Args:
             before (:obj:`npc.types.Settings`): Complete settings before the change
             after (:obj:`npc.types.Settings`): Complete settings after the change
             change (:obj:`npc.types.SettingsDiff`): Dictionary of changes in the settings
         """
-        self.log(f"Settings change: {json.dumps(change)}")
+        self.log.info(f"Settings change: {json.dumps(change)}")
 
-    def vlog(self, message: str, *message_args: Any) -> None:
-        """Verbose log
+        if "verbose" in change["after"]:
+            self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+            self.log.info(f"Verbose logging {'enabled' if self.config.verbose else 'disabled'}")
 
-        Log a message only if the verbose setting is enabled
-
-        Args:
-            message (:obj:`str`): Message to be logged
-            message_args (:obj:`typing.Any`): Arguments to be formatted in the message.
-                Common log python log arguments such as %s, %d, etc. can be used
-        """
-        if self.settings.get("verbose", False):
-            log(message, *message_args)
-
-    def log(
-        self,
-        message: str,
-        *message_args: Any,
-        level: LogLevel = LogLevel.DEFAULT,
-        prefix: Optional[str] = None,
-        title: Optional[str] = None,
-        windowed: bool = False,
-        should_log_to_file: bool = True,
-    ) -> None:
-        """Log a message to the console and optionally to a window
-
-        .. seealso:: Alias for :func:`npc.log` for arguments and usage.
-
-        Adds the plugin name as a prefix to the message.
-        """
-        prefix = prefix if prefix is not None else self.__name__
-
-        log(
-            message,
-            *message_args,
-            level=level,
-            prefix=prefix,
-            title=title,
-            windowed=windowed,
-            should_log_to_file=should_log_to_file,
-        )
-
-    def window_log(
-        self,
-        message: str,
-        *message_args: Any,
-        title: Optional[str] = None,
-        level: LogLevel = LogLevel.DEFAULT,
-    ) -> None:
-        """Log a message to a window
-
-        .. seealso:: Alias for :func:`npc.log` for arguments and usage.
+    def window(self, message: str, title: Optional[str] = None) -> None:
+        """Open a window with a message
 
         The title will be prefixed with the plugin name or if not provided, the
         plugin name will be used as the title.
+
+        Args:
+            message (:obj:`str`): Message to be shown in the window
+            title (:obj:`str`, optional): Title of the window. Defaults to the plugin name.
         """
         if not title:
             title = self.__name__
         else:
             title = f"{self.__name__}: {title}"
-        self.log(message, *message_args, level=level, title=title, prefix="")
+        log(message, title=title)
