@@ -24,6 +24,7 @@ Note:
 """
 
 import ast
+import configparser
 import sys
 from pathlib import Path
 from typing import Optional
@@ -32,7 +33,7 @@ from pynicotine.logfacility import log as nlog
 
 from .types import PluginConfig
 
-__all__ = ["BASE_PATH", "CONFIG", "__version__"]
+__all__ = ["BASE_PATH", "CONFIG", "__version__", "load_npc_package_config"]
 
 
 def load_config(path: Path) -> PluginConfig:
@@ -90,6 +91,23 @@ def find_file_in_parents(file: str, start: Path) -> Optional[Path]:
     return None
 
 
+def load_npc_package_config() -> PluginConfig:
+    """Load the plugin configuration from the pyproject.toml file
+
+    Returns:
+        :obj:`npc.types.PluginConfig`: Plugin configuration
+    """
+    pyproject = find_file_in_parents("pyproject.toml", Path(__file__).parent)
+    if pyproject:
+        config = configparser.ConfigParser()
+        config.read(str(pyproject))
+
+        for option in ["name", "description", "author", "version"]:
+            if config.has_option("tool.poetry", option):
+                FALLBACK_CONFIG[option] = ast.literal_eval(config.get("tool.poetry", option))  # type: ignore[literal-required]
+    return FALLBACK_CONFIG
+
+
 FALLBACK_BASE_PATH = Path(__file__).parent
 """In case we are in a build environment like readthedocs.org"""
 
@@ -98,7 +116,7 @@ FALLBACK_CONFIG = PluginConfig(
         "name": "Nicotine+ Plugin Core",
         "description": "A powerful core for building feature-rich Nicotine+ plugins with ease.",
         "author": ["Nachtalb"],
-        "version": "0.1.0",
+        "version": "0.2.0",
         "prefix": "",
         "repository": "Nachtalb/nicotine-plugin-core",
     }
@@ -116,6 +134,7 @@ if path := find_file_in_parents("PLUGININFO", Path(__file__).parent):
     """Plugin info"""
 else:
     print("Could not find the base path of the plugin directory", file=sys.stderr)
+    load_npc_package_config()
     BASE_PATH = FALLBACK_BASE_PATH
     """Base path of the plugin directory"""
     CONFIG = FALLBACK_CONFIG

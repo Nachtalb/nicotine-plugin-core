@@ -9,11 +9,13 @@ from sphinx.application import Sphinx  # noqa: F401
 
 sys.path.insert(0, str(Path("../..").resolve().absolute()))
 
+from docs.auxil.load_config import CONFIG  # noqa: E402
+
 # -- General configuration ------------------------------------------------
 # General information about the project.
-project = "nicotine-plugin-core"
-copyright = "2021-2024, Nachtalb"
-author = "Nachtalb"
+project = CONFIG["name"]
+copyright = CONFIG["copyright"]
+author = CONFIG["authors"]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -24,9 +26,10 @@ author = "Nachtalb"
 # Import needs to be below the sys.path.insert above
 # import npc  # noqa: E402
 
-version = "0.1.0"
+
+version = CONFIG["version"]
 # The full version, including alpha/beta/rc tags.
-release = "0.1.0"
+release = CONFIG["version"]
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = "6.1.3"
