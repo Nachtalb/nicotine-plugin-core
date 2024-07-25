@@ -106,7 +106,7 @@ Here is a bit larger example for a plugin:
       def stop(self) -> None:
           super().stop()
 
-          # Pluggin has been stopped, do some cleanup if needed
+          # Plugin has been stopped, do some cleanup if needed
 
       def shutdown_notification(self) -> None:
           super().shutdown_notification()  # will run .stop()
@@ -129,14 +129,14 @@ Here is a bit larger example for a plugin:
       def increment(self, n: int = 1) -> None:
           """Increment the counter."""
           self.config.counter += n
-          self.config.apply()  # Persist settings change accross sessions
+          self.config.apply()  # Persist settings change across sessions
           self.log("Counter is now at %d", self.config.counter)  # normal logging to the console
 
       @command(parameters=["[n]"], aliases=["dec"])  # Aliases are additional names for the command
       def decrement(self, n: int = 1) -> None:
           """Decrement the counter."""
           self.config.counter -= n
-          self.config.apply()  # Persist settings change accross sessions
+          self.config.apply()  # Persist settings change across sessions
           self.log("Counter is now at %d", self.config.counter)
 
       @command(disabled_interfaces=[CommandInterface.CHATROOM])  # Disable the command in the chatroom
