@@ -56,6 +56,8 @@ __all__ = ["log", "LOGGER", "NLogHandler"]
 class NLogHandler(logging.Handler):
     """Custom logging handler for Nicotine+
 
+    .. versionadded:: 0.2.0
+
     This handler will emit log records using Nicotine+'s log facility.
 
     Example:
@@ -162,11 +164,12 @@ LOGGER.addHandler(handler)
 LOGGER.__doc__ = """
 Your typical :class:`logging.Logger` logging to Nicotine+'s log facility
 
+.. versionadded:: 0.2.0
+
 * It uses the :class:`npc.logging.NLogHandler` to emit log records
 * It is already configured with the plugin's name
 * It uses the format ``%(name)s - %(levelname)s - %(message)s``. Time is
   already added by Nicotine+
-
 
 Example:
 

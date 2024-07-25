@@ -67,6 +67,8 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                     \"\"\"Hello command\"\"\"
                     self.window(f"Hello {name}, you are {age} years old", title="Welcome")
 
+    .. versionremoved:: 0.2.0 Removed :meth:`npc.BasePlugin.vlog` in favour of the
+        :attr:`npc.BasePlugin.log` logger instance. Use ``self.log.debug(...)`` instead.,
 
     Attributes:
         settings (:obj:`npc.types.Settings`): Plugin settings dictionary. Don't override
@@ -94,6 +96,10 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             private commands. Use :attr:`BasePlugin.commands` instead.
         log (:obj:`logging.Logger`): Logger instance for the plugin. It's named after
             the plugin name.
+
+            .. versionchanged:: 0.2.0 Replaced ``npc.BasePlugin.log()`` function with
+                :attr:`npc.BasePlugin.log` logger instance. Use ``self.log.info(...)`` instead
+                of ``self.log(...)``.
     """
 
     class Config(BaseConfig):
@@ -376,6 +382,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
     def window(self, message: str, title: Optional[str] = None) -> None:
         """Open a window with a message
+
+        .. versionchanged:: 0.2.0 Renamed from :meth:`npc.BasePlugin.window_log` to
+            :meth:`npc.BasePlugin.window`
 
         The title will be prefixed with the plugin name or if not provided, the
         plugin name will be used as the title.
