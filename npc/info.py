@@ -24,6 +24,7 @@ Note:
 """
 
 import ast
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -86,16 +87,36 @@ def find_file_in_parents(file: str, start: Path) -> Optional[Path]:
     return None
 
 
-BASE_PATH = find_file_in_parents("PLUGININFO", Path(__file__).parent).parent  # type: ignore[union-attr]
-"""Base path of the plugin directory"""
+FALLBACK_BASE_PATH = Path(__file__).parent
+"""In case we are in a build environment like readthedocs.org"""
 
-if not BASE_PATH:
-    raise FileNotFoundError("Could not find the base path of the plugin directory")
+FALLBACK_CONFIG = PluginConfig(
+    {
+        "name": "Nicotine+ Plugin Core",
+        "description": "A powerful core for building feature-rich Nicotine+ plugins with ease.",
+        "author": ["Nachtalb"],
+        "version": "0.1.0",
+        "prefix": "",
+        "repository": "Nachtalb/nicotine-plugin-core",
+    }
+)
+"""Fallback configuration in case the plugin info file is not found"""
 
-config_file = BASE_PATH / "PLUGININFO"
-"""Path to the plugin info file"""
-CONFIG = load_config(config_file)
-"""Plugin info"""
+
+if path := find_file_in_parents("PLUGININFO", Path(__file__).parent):
+    BASE_PATH = path.parent
+    """Base path of the plugin directory"""
+
+    config_file = BASE_PATH / "PLUGININFO"
+    """Path to the plugin info file"""
+    CONFIG = load_config(config_file)
+    """Plugin info"""
+else:
+    print("Could not find the base path of the plugin directory", file=sys.stderr)
+    BASE_PATH = FALLBACK_BASE_PATH
+    """Base path of the plugin directory"""
+    CONFIG = FALLBACK_CONFIG
+    """Plugin info"""
 
 __version__ = CONFIG["version"]
 """Plugin version"""
