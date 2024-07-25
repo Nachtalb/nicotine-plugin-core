@@ -54,3 +54,8 @@ strict = true
 [[tool.mypy.overrides]]
 module = ["pynicotine.*", "sphinx.*"]
 ignore_missing_imports = true
+
+[tool.poetry.scripts]
+build-docs = "scripts:build_docs"
+open-docs = "scripts:open_docs"
+check = "scripts:check"
