@@ -86,8 +86,8 @@ class Plugin(BasePlugin):
 ## Installation
 
 You can find a full guide on how to install this core for your plugin in the
-provided documentation. As of now it's not available online. But you can clone
-the project and easily build the documentation yourself.
+provided documentation. You can use the [online documentation][docs] or easily
+build it yourself locally.
 
 ```sh
 
@@ -99,7 +99,7 @@ poetry run open-docs
 ```
 
 Once you've built and opened the documentation you will find a guide on how to
-use this core step by step under `Installation`. Enjoy!
+use this core step by step under [Installation][installation-docs]. Enjoy!
 
 ## Credits and Thanks
 
@@ -112,3 +112,9 @@ This project is licensed under the LGPLv3 License - see the [LICENSE](LICENSE)
 file for details.
 
 [n+]: https://nicotine-plus.org/ "Nicotine+ Website"
+[docs]:
+  https://nicotine-plugin-core-npc.readthedocs.io/latest/
+  "Nicotine+ Plugin Core Documentation"
+[installation-docs]:
+  https://nicotine-plugin-core-npc.readthedocs.io/latest/installation.html
+  "Installation Guide"
