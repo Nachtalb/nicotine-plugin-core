@@ -20,6 +20,7 @@ Example:
                  setting_5 = ListString("This is setting 5", ["item1", "item2", "item3"])
                  setting_6 = Dropdown("This is setting 6", ["option1", "option2", "option3"], "option1")
                  setting_7 = Radio("This is setting 7", ["option1", "option2", "option3"], "option1")
+                 setting_8 = File("This is setting 8", "", chooser=FileChooser.DIRECTORY)
 
         ...
 
@@ -53,11 +54,12 @@ Warning:
         self.config.apply()
 """
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from pynicotine.config import config as NConfig
 
-from .types import MetaSetting, MetaSettings, Settings, SettingType
+from .types import FileChooser, MetaSetting, MetaSettings, Settings, SettingType
 
 if TYPE_CHECKING:
     from .base import BasePlugin
@@ -482,3 +484,42 @@ def ListString(description: str, default: List[str] = [], name: Optional[str] = 
             the value of the setting on config initialization
     """
     return Field(description=description, default=default, type=SettingType.LIST_STRING, name=name)  # type: ignore[return-value]
+
+
+def File(
+    description: str, default: str = "", chooser: FileChooser = FileChooser.FILE, name: Optional[str] = None
+) -> Path:
+    """A configuration field for a file input
+
+    Will handle files as :obj:`pathlib.Path` objects instead of strings.
+
+    .. versionadded:: 0.3.0
+
+    Args:
+        description (:obj:`str`): The description of the setting.
+        default (:obj:`str`, optional): The default value of the setting.
+            Defaults to "".
+        file_chooser (:obj:`npc.types.FileChooser`, optional): The file chooser type.
+            Defaults to :attr:`npc.types.FileChooser.FILE`.
+        name (:obj:`str`): The name of the setting.
+
+    Returns:
+        :obj:`str`: A field object which will be replaced by the value of the
+            setting on config initialization
+    """
+
+    def to_value(value: Any, field: Field, plugin: "BasePlugin") -> Path:
+        return Path(value)
+
+    def from_value(value: Any, field: Field, plugin: "BasePlugin") -> str:
+        return str(value)
+
+    return Field(
+        description=description,
+        default=default,
+        type=SettingType.FILE,
+        name=name,
+        chooser=chooser,
+        to_value=to_value,
+        from_value=from_value,
+    )  # type: ignore[return-value]
