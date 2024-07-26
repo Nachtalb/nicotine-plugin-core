@@ -38,5 +38,7 @@ Config Fields
 
 .. autofunction:: npc.ListString
 
+.. autofunction:: npc.File
+
 .. autoclass:: npc.config.Field
     :members:

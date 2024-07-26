@@ -116,5 +116,6 @@ This package requires python 3.9 or higher.
     :hidden:
     :caption: Project
 
+    changelog
     Github Repository <https://github.com/Nachtalb/npc>
     Me on Telegram <https://t.me/Nachtalb>

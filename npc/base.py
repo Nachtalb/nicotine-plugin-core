@@ -68,7 +68,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                     self.window(f"Hello {name}, you are {age} years old", title="Welcome")
 
     .. versionremoved:: 0.2.0 Removed :meth:`npc.BasePlugin.vlog` in favour of the
-        :attr:`npc.BasePlugin.log` logger instance. Use ``self.log.debug(...)`` instead.,
+        :attr:`npc.BasePlugin.log` logger instance. Use ``self.log.debug(...)`` instead.
 
     Attributes:
         settings (:obj:`npc.types.Settings`): Plugin settings dictionary. Don't override
