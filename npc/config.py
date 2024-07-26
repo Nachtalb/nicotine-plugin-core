@@ -143,7 +143,7 @@ class BaseConfig:
 
         if name in fields:
             model_plugin = super().__getattribute__("model_plugin")
-            value = fields[name].from_value(value, model_plugin)
+            value = fields[name].from_value(value)
             model_plugin.settings[name] = value
             return
 
@@ -155,7 +155,7 @@ class BaseConfig:
         Returns:
             :obj:`npc.types.Settings`: The settings dict generated from the model.
         """
-        return {name: setting.default for name, setting in self.model_fields.items()}
+        return {name: setting.from_value(setting.default) for name, setting in self.model_fields.items()}
 
     def model_metasettings(self) -> MetaSettings:
         """Convert the model to metasettings
@@ -190,6 +190,9 @@ class Field:
 
     This class is used to define a configuration field for a plugin.
 
+    .. versionchanged:: 0.3.1 Removed `plugin` as a parameter for the
+        :paramref:`from_value` function.
+
     Args:
         description (:obj:`str`): The description of the setting.
         default (:obj:`typing.Any`): The default value of the setting.
@@ -221,7 +224,7 @@ class Field:
         type: SettingType,
         name: Optional[str] = None,
         to_value: Optional[Callable[[Any, "Field", "BasePlugin"], Any]] = None,
-        from_value: Optional[Callable[[Any, "Field", "BasePlugin"], Any]] = None,
+        from_value: Optional[Callable[[Any, "Field"], Any]] = None,
         **options: Any,
     ) -> None:
         self.name = name or ""  # If not provided it will later be set by the BaseConfig
@@ -264,18 +267,19 @@ class Field:
             return self.to_value_func(value, self, plugin)
         return value
 
-    def from_value(self, value: Any, plugin: "BasePlugin") -> Any:
+    def from_value(self, value: Any) -> Any:
         """Set the value of the setting
+
+        .. versionchanged:: 0.3.1 Removed `plugin` as a parameter.
 
         Args:
             value (:obj:`typing.Any`): The value to set the setting to.
-            plugin (:obj:`npc.BasePlugin`): The plugin instance that the setting is attached to.
 
         Returns:
             :obj:`typing.Any: The value of the setting.
         """
         if self.from_value_func:
-            return self.from_value_func(value, self, plugin)
+            return self.from_value_func(value, self)
         return value
 
 
@@ -453,7 +457,7 @@ def Radio(description: str, options: List[str], default: str = "", name: Optiona
     def to_value(value: Any, field: Field, plugin: "BasePlugin") -> str:
         return field.options["options"][value]  # type: ignore[no-any-return]
 
-    def from_value(value: Any, field: Field, plugin: "BasePlugin") -> int:
+    def from_value(value: Any, field: Field) -> int:
         options = field.options["options"]
         return options.index(value)  # type: ignore[no-any-return]
 
@@ -511,7 +515,9 @@ def File(
     def to_value(value: Any, field: Field, plugin: "BasePlugin") -> Path:
         return Path(value)
 
-    def from_value(value: Any, field: Field, plugin: "BasePlugin") -> str:
+    def from_value(value: Any, field: Field) -> str:
+        if isinstance(value, str):
+            return value  # Prevents "" resolving to Path("") which is CWD
         return str(value)
 
     return Field(
