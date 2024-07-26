@@ -196,12 +196,7 @@ def write_changelog(changelog: List[Entry], output_file: str) -> None:
             f.write(f"* {entry.change_type.capitalize()}: [{rst_reference}] {entry.description}\n")
 
 
-def main() -> None:
-    if len(sys.argv) != 2:
-        print("Usage: python generate_changelog.py <output_file>")
-        sys.exit(1)
-
-    output_file = sys.argv[1]
+def main(output_file: str) -> None:
     directory = "./npc"
 
     print(f"Generating changelog for {directory}")
@@ -216,4 +211,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print("Usage: python generate_changelog.py <output_file>")
+        sys.exit(1)
+
+    output_file = sys.argv[1]
+
+    main(output_file)
