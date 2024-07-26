@@ -260,7 +260,7 @@ class Field:
             plugin (:obj:`npc.BasePlugin`): The plugin instance that the setting is attached to.
 
         Returns:
-            :obj:`typing.Any: The value of the setting.
+            :obj:`typing.Any`: The value of the setting.
         """
         value = plugin.settings.get(self.name)
         if self.to_value_func:
@@ -276,7 +276,7 @@ class Field:
             value (:obj:`typing.Any`): The value to set the setting to.
 
         Returns:
-            :obj:`typing.Any: The value of the setting.
+            :obj:`typing.Any`: The value of the setting.
         """
         if self.from_value_func:
             return self.from_value_func(value, self)
@@ -504,14 +504,14 @@ def File(
 
     Args:
         description (:obj:`str`): The description of the setting.
-        default (:obj:`str`, optional): The default value of the setting.
+        default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
         file_chooser (:obj:`npc.types.FileChooser`, optional): The file chooser type.
             Defaults to :attr:`npc.types.FileChooser.FILE`.
         name (:obj:`str`): The name of the setting.
 
     Returns:
-        :obj:`str`: A field object which will be replaced by the value of the
+        :obj:`pathlib.Path`: A field object which will be replaced by the value of the
             setting on config initialization
     """
 

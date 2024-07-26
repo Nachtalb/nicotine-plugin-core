@@ -85,7 +85,7 @@ class Response:
             attr (:obj:`str`): Attribute to get (e.g. status, headers, etc.
 
         Returns:
-            :obj:`typing.Any: Value of the attribute
+            :obj:`typing.Any`: Value of the attribute
         """
         if attr in self.__dict__:
             return getattr(self, attr)
