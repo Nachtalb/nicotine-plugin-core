@@ -44,23 +44,36 @@ preview_and_confirm_bump() {
     fi
 }
 
-# Function to commit changes
-commit_changes() {
+# Function to show changes and commit
+show_and_commit_changes() {
+    local flag="$1"
+    print_color "$CYAN_BG" "DIFF:" "Showing changes:"
+    git --no-pager diff pyproject.toml
     if get_confirmation "Do you want to commit these changes?"; then
+        current_version=$(poetry version -s)
         git add pyproject.toml
-        git commit -m "Bump version to $(poetry version -s)"
-        print_color "$GREEN_BG" "SUCCESS:" "Changes committed."
+        git commit -m "Bump version to $current_version"
+        # Only tag if it's not a prerelease version
+        case "$flag" in
+            prepatch|preminor|premajor|prerelease)
+                print_color "$YELLOW_BG" "INFO:" "Prerelease version detected. Skipping tag creation."
+                ;;
+            *)
+                git tag -a "v$current_version" -m "Release version $current_version"
+                print_color "$GREEN_BG" "SUCCESS:" "Changes committed and tagged as v$current_version."
+                ;;
+        esac
     else
         print_color "$RED_BG" "ABORT:" "Commit cancelled. Exiting."
         exit 1
     fi
 }
 
-# Function to push changes
-push_changes() {
-    if get_confirmation "Do you want to push these changes?"; then
-        git push
-        print_color "$GREEN_BG" "SUCCESS:" "Changes pushed."
+# Function to push changes and tags
+push_changes_and_tags() {
+    if get_confirmation "Do you want to push these changes and tags?"; then
+        git push && git push --tags
+        print_color "$GREEN_BG" "SUCCESS:" "Changes and tags pushed."
     else
         print_color "$MAGENTA_BG" "SKIP:" "Push skipped. Continuing."
     fi
@@ -81,8 +94,8 @@ main() {
     case "$flag" in
         patch|minor|major|prepatch|preminor|premajor|prerelease)
             if preview_and_confirm_bump "$flag"; then
-                commit_changes
-                push_changes
+                show_and_commit_changes "$flag"
+                push_changes_and_tags
             else
                 exit 1
             fi
@@ -95,8 +108,8 @@ main() {
 
     print_color "$BLUE_BG" "INFO:" "Performing additional prepatch bump"
     if preview_and_confirm_bump prepatch; then
-        commit_changes
-        push_changes
+        show_and_commit_changes "prepatch"
+        push_changes_and_tags
     else
         exit 1
     fi
