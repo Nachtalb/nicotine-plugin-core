@@ -40,5 +40,14 @@ Config Fields
 
 .. autofunction:: npc.File
 
+.. autofunction:: npc.Folder
+
+.. autofunction:: npc.Directory
+    :no-docstring:
+
+    Alias of :func:`npc.Folder`
+
+.. autofunction:: npc.Image
+
 .. autoclass:: npc.config.Field
     :members:

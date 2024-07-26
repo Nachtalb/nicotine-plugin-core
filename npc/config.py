@@ -55,7 +55,7 @@ Warning:
 """
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 from pynicotine.config import config as NConfig
 
@@ -491,7 +491,10 @@ def ListString(description: str, default: List[str] = [], name: Optional[str] = 
 
 
 def File(
-    description: str, default: str = "", chooser: FileChooser = FileChooser.FILE, name: Optional[str] = None
+    description: str,
+    default: Union[str, Path] = "",
+    chooser: FileChooser = FileChooser.FILE,
+    name: Optional[str] = None,
 ) -> Path:
     """A configuration field for a file input
 
@@ -529,3 +532,46 @@ def File(
         to_value=to_value,
         from_value=from_value,
     )  # type: ignore[return-value]
+
+
+def Folder(description: str, default: Union[str, Path] = "", name: Optional[str] = None) -> Path:
+    """A configuration field for a folder input
+
+    Will handle folders as :obj:`pathlib.Path` objects instead of strings.
+
+    .. versionadded:: 0.3.1 Quick alias for :func:`File` with :attr:`npc.types.FileChooser.FOLDER`
+
+    Args:
+        description (:obj:`str`): The description of the setting.
+        default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
+            Defaults to "".
+        name (:obj:`str`): The name of the setting.
+
+    Returns:
+        :obj:`pathlib.Path`: A field object which will be replaced by the value of the
+            setting on config initialization
+    """
+    return File(description=description, default=default, chooser=FileChooser.FOLDER, name=name)
+
+
+Directory = Folder
+
+
+def Image(description: str, default: Union[str, Path] = "", name: Optional[str] = None) -> Path:
+    """A configuration field for an image input
+
+    Will handle images as :obj:`pathlib.Path` objects instead of strings.
+
+    .. versionadded:: 0.3.1 Quick alias for :func:`File` with :attr:`npc.types.FileChooser.IMAGE`
+
+    Args:
+        description (:obj:`str`): The description of the setting.
+        default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
+            Defaults to "".
+        name (:obj:`str`): The name of the setting.
+
+    Returns:
+        :obj:`pathlib.Path`: A field object which will be replaced by the value of the
+            setting on config initialization
+    """
+    return File(description=description, default=default, chooser=FileChooser.IMAGE, name=name)
