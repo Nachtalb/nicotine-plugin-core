@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "npc"
-version = "0.3.1a0"
+version = "0.3.1"
 description = "A powerful core for building feature-rich Nicotine+ plugins with ease."
 authors = ["Nachtalb <na@nachtalb.io>"]
 license = "MIT"

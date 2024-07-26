@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+* Versionchanged: [:class:`npc.config.Field`] Removed `plugin` as a parameter for the :paramref:`from_value` function.
+* Versionchanged: [:meth:`npc.config.Field.from_value`] Removed `plugin` as a parameter.
+* Versionadded: [:func:`npc.Folder`] Quick alias for :func:`File` with :attr:`npc.types.FileChooser.FOLDER`
+* Versionadded: [:func:`npc.Image`] Quick alias for :func:`File` with :attr:`npc.types.FileChooser.IMAGE`
+
 0.3.0
 -----
 
