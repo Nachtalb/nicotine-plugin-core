@@ -211,10 +211,11 @@ def main(output_file: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) > 2:
         print("Usage: python generate_changelog.py <output_file>")
-        sys.exit(1)
-
-    output_file = sys.argv[1]
+    elif len(sys.argv) == 1:
+        output_file = "CHANGELOG.rst"
+    else:
+        output_file = sys.argv[1]
 
     main(output_file)

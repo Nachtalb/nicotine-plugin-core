@@ -30,6 +30,17 @@ get_confirmation() {
     esac
 }
 
+# Function to generate changelog
+generate_changelog() {
+    print_color "$BLUE_BG" "INFO:" "Generating changelog..."
+    if ./generate_changelog.py; then
+        print_color "$GREEN_BG" "SUCCESS:" "Changelog generated successfully."
+    else
+        print_color "$RED_BG" "ERROR:" "Failed to generate changelog. Exiting."
+        exit 1
+    fi
+}
+
 # Function to preview version bump and get confirmation
 preview_and_confirm_bump() {
     print_color "$BLUE_BG" "PREVIEW:" "Dry run of version bump with flag: $1"
@@ -48,12 +59,11 @@ preview_and_confirm_bump() {
 show_and_commit_changes() {
     local flag="$1"
     print_color "$CYAN_BG" "DIFF:" "Showing changes:"
-    git --no-pager diff pyproject.toml
+    git --no-pager diff pyproject.toml CHANGELOG.rst
     if get_confirmation "Do you want to commit these changes?"; then
         current_version=$(poetry version -s)
-        git add pyproject.toml
-        git commit -m "Bump version to $current_version"
-        # Only tag if it's not a prerelease version
+        git add pyproject.toml CHANGELOG.rst
+        git commit -m "Bump version to $current_version and update changelog"
         case "$flag" in
             prepatch|preminor|premajor|prerelease)
                 print_color "$YELLOW_BG" "INFO:" "Prerelease version detected. Skipping tag creation."
@@ -90,6 +100,8 @@ main() {
 
     flag="${1#--}"
     initial_version=$(poetry version -s)
+
+    generate_changelog
 
     case "$flag" in
         patch|minor|major|prepatch|preminor|premajor|prerelease)
