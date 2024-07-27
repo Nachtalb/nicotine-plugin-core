@@ -81,7 +81,6 @@ __all__ = [
     "Number",
     "PeriodicJob",
     "PluginConfig",
-    "Post",
     "Radio",
     "Readable",
     "RequiredMetaSetting",
