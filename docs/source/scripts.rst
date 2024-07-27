@@ -148,12 +148,14 @@ This script is used to release a new version of the package. It does the followi
 
 1. Bumps the version in the ``pyproject.toml`` file.
 2. Generates the changelog.
-3. Commits the changes.
-4. Tags the commit.
-5. Pushes the commit and tag.
-6. Bumps the version in the ``pyproject.toml`` file again to the next development version.
-7. Commits the changes.
-8. Pushes the commit.
+3. Update ``PLUGININFO``.
+4. Commits the changes.
+6. Tags the commit.
+7. Pushes the commit and tag.
+8. Bumps the version in the ``pyproject.toml`` file again to the next development version.
+9. Updates the ``PLUGININFO`` again.
+10. Commits the changes.
+11. Pushes the commit.
 
 You get asked at every step if you want to continue. You can run the following
 command to release a new version:
@@ -164,9 +166,11 @@ command to release a new version:
 
 .. note::
 
-   Files: ``release.sh`` and ``generate_changelog.py``
+   Files: ``release.sh`` and optionally ``generate_changelog.py`` and ``PLUGININFO``.
 
-   You can remove the generate_changelog part from the script if you don't want
-   to generate the changelog on release. Then you'd only need the ``release.sh``.
+   You can copy over the ``release.sh`` file to your project and run it.
 
-   Otherwise, just copy both of the files to your project and run the script.
+   If you have the ``generate_changelog.py`` script in your project, the script
+   will use it to update the changelog.
+
+   If you have a ``PLUGININFO`` file in your project, the script will update it's version.
