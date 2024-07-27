@@ -7,7 +7,6 @@ import webbrowser
 from pathlib import Path
 from typing import Union
 
-from generate_changelog import DEFAULT_DIR, DEFAULT_EXCLUDE
 from generate_changelog import arg_main as generate_changelog
 from generate_changelog import main as generate_changelog_main
 
@@ -23,12 +22,8 @@ def _cwd_or_base_path(file: Union[str, Path]) -> Path:
 
 
 def build_docs() -> None:
-    if len(sys.argv) > 1:
-        changelog_file = sys.argv[1]
-    else:
-        changelog_file = _cwd_or_base_path("CHANGELOG.rst")
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    generate_changelog(DEFAULT_DIR, changelog_file, DEFAULT_EXCLUDE)
+    generate_changelog()
 
     docs_dir = _cwd_or_base_path("docs")
     os.chdir(docs_dir)

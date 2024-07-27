@@ -8,12 +8,14 @@ from typing import Any, List, Literal, NamedTuple, Optional, Set
 
 LOG = logging.getLogger(__name__)
 # Find first dir with __init__.py file
-DEFAULT_DIR = next((d for d in os.listdir() if os.path.exists(os.path.join(d, "__init__.py"))), None)
+DEFAULT_DIR = next((d for d in os.listdir() if os.path.exists(os.path.join(d, "__init__.py"))), "")
 
 # Find an NPC module if it exists
 DEFAULT_EXCLUDE = []
 if DEFAULT_DIR and (npc := os.path.join(DEFAULT_DIR, "npc")) and os.path.exists(npc):
     DEFAULT_EXCLUDE = [npc]
+
+DEFAULT_FILE = "CHANGELOG.rst"
 
 
 Entry = NamedTuple(
@@ -217,7 +219,9 @@ def write_changelog(changelog: List[Entry], output_file: str, default_module: st
             f.write(f"* {action}: [{rst_reference}] {entry.description}\n")
 
 
-def arg_main(directory: str, output_file: str, excluded_dirs: List[str]) -> bool:
+def arg_main(
+    directory: str = DEFAULT_DIR, output_file: str = DEFAULT_FILE, excluded_dirs: List[str] = DEFAULT_EXCLUDE
+) -> bool:
     LOG.info(f"Generating changelog for {directory}")
     changelog = generate_changelog(directory, excluded_dirs)
 
@@ -232,7 +236,7 @@ def arg_main(directory: str, output_file: str, excluded_dirs: List[str]) -> bool
 
 def main():
     parser = argparse.ArgumentParser(description="Generate a changelog from docstrings in Python files.")
-    parser.add_argument("output_file", help="The file to write the changelog to.")
+    parser.add_argument("-o", "--output_file", help="The file to write the changelog to.", default=DEFAULT_FILE)
     parser.add_argument("-d", "--directory", help="The directory to search for Python files.", default=DEFAULT_DIR)
     parser.add_argument(
         "-e", "--exclude", help="Directories to exclude from search.", nargs="*", default=DEFAULT_EXCLUDE
@@ -255,6 +259,9 @@ def main():
 
         if DEFAULT_EXCLUDE:
             LOG.debug(f"Found default exclude directories: {DEFAULT_EXCLUDE}")
+    else:
+        LOG.warning("No default directory found. Please specify a directory to search for Python files.")
+        sys.exit(1)
 
     if not arg_main(args.directory, args.output_file, args.exclude):
         sys.exit(1)
