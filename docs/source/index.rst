@@ -6,12 +6,12 @@
 Nicotine+ Plugin Core
 =====================
 
-My "Nicotine+ Plugin Core" is a library that provides a set of tools to help
+The "Nicotine+ Plugin Core" is a library that provides a set of tools to help
 you develop plugins for the `Nicotine+ <https://nicotine-plus.org/>`_ client.
 
-Nicotine+ is written in Python and uses the `GTK+ <https://www.gtk.org/>`_. It
-has built in plugin support. But it's not very well documented and not very
-user friendly. This library aims to make it easier to develop plugins for
+Nicotine+ is written in Python and uses `GTK+ <https://www.gtk.org/>`_. It
+has built-in plugin support, but it's not very well documented and not very
+user-friendly. This library aims to make it easier to develop plugins for
 Nicotine+.
 
 .. note::
@@ -35,7 +35,7 @@ Notable Features
 Example
 -------
 
-Here is a small example of how to use the libaray to create a plugin:
+Here is a small example of how to use the library to create a plugin:
 
 .. code-block:: python
 
@@ -50,53 +50,53 @@ Here is a small example of how to use the libaray to create a plugin:
          """Say hello to the world."""
          self.window_log(self.config.hello_text)
 
-with this code you already have a working plugin that will open a window and
+With this code, you already have a working plugin that will open a window and
 print "Hello World!" in it when running /hello in the chat.
 
-As you can also see I added a ease of use class :class:`npc.BaseConfig` that will help you
+As you can also see, I added an ease-of-use class :class:`npc.BaseConfig` that will help you
 to manage your configuration. This class will automatically create the
-corresponding ``settigns`` and ``metasettings`` configurations needed for
-Nicotine+. It's also typed, so while you use :func:`npc.TextArea`, :func:`npc.Int`
-or any other field you get the correct type such as ``str``, ``int`` in this
+corresponding ``settings`` and ``metasettings`` configurations needed for
+Nicotine+. It's also typed, so while you use :func:`npc.TextArea`, :func:`npc.Int`,
+or any other field, you get the correct type such as ``str``, ``int`` in this
 case.
 
 .. warning::
 
-   It's imporant to say though if you want to change the configuration
-   programatically you must use :meth:`npc.BaseConfig.apply` to persist
-   the changes. By default Nicoitne+ will ignore configuration changes made
-   through code. :meth:`npc.BaseConfig.apply` will make sure that the changes
-   updated behind the scenes in the Nicotine+.
+   It's important to note that if you want to change the configuration
+   programmatically, you must use :meth:`npc.BaseConfig.apply` to persist
+   the changes. By default, Nicotine+ will ignore configuration changes made
+   through code. :meth:`npc.BaseConfig.apply` will make sure that the changes are
+   updated behind the scenes in Nicotine+.
 
-I strongly recommend that you strongly type your code using `mypy <https://mypy.readthedocs.io/en/stable/>`_.
-This will help you to avoid many errors and make your code more robust.
-Of course this packge is fully typed.
+I strongly recommend that you type your code using `mypy <https://mypy.readthedocs.io/en/stable/>`_.
+This will help you avoid many errors and make your code more robust.
+Of course, this package is fully typed.
 
-Check out :class:`npc.BasePlugin` for more information on how to create a plugin
+Check out :class:`npc.BasePlugin` for more information on how to create a plugin and
 :func:`npc.command` for more information on how to create commands.
 
 Update Feature
 --------------
 
-Additionally to the default `PLUGININFO` file information that Nicotine+ wants
-from you (that would be the ``name``, ``version``, ``author``, ``description``)
+In addition to the default `PLUGININFO` file information that Nicotine+ requires
+from you (that would be the ``name``, ``version``, ``author``, ``description``),
 you can also provide ``prefix`` and ``repository``. The ``prefix`` will be
-added to all commands of the plugin. To preven conflicts with other plugins.
+added to all commands of the plugin to prevent conflicts with other plugins.
 
-The ``repository`` is a link to the repository of the plugin. If this is given
+The ``repository`` is a link to the repository of the plugin. If this is given,
 the plugin will automatically check and notify the user if there is a new
 version available.
 
 .. note::
 
-    As of now this library only supports Github repositories. It will not
-    check other resources such as Gitlab or Bitbucket for updates.
+    As of now, this library only supports GitHub repositories. It will not
+    check other resources such as GitLab or Bitbucket for updates.
 
 
 Requirements
 ------------
 
-This package requires python 3.9 or higher.
+This package requires Python 3.9 or higher.
 
 .. toctree::
     :hidden:
@@ -118,5 +118,5 @@ This package requires python 3.9 or higher.
     :caption: Project
 
     changelog
-    Github Repository <https://github.com/Nachtalb/npc>
+    GitHub Repository <https://github.com/Nachtalb/npc>
     Me on Telegram <https://t.me/Nachtalb>

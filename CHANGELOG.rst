@@ -4,7 +4,7 @@ Changelog
 0.3.2
 -----
 
-* Added: [:mod:`npc.changes`] Export * from ``npc`` module in root ``__init__.py``, in order to make imports easier, when this package is used in another party plugin.
+* Added: [:mod:`npc.changes`] Export * from ``npc`` module in root ``__init__.py``, in order to make imports easier when this package is used in another party plugin.
 * Changed: [:mod:`npc.changes`] Updated ``scripts.py`` and ``generate_changelog.py`` to be usable in plugins using this package. Just copy them over and use them as is.
 * Changed: [:mod:`npc.changes`] Document the use of all the :doc:`scripts <scripts>` in this package.
 

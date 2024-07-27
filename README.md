@@ -1,7 +1,7 @@
 # Nicotine+ Plugin Core (NPC)
 
-This is the core tp all my [Nicotine+][n+] plugins. It provides a more advanced
-way to create plugins than the default n+ way. It is only a layer on top of the
+This is the core for all my [Nicotine+][n+] plugins. It provides a more advanced
+way to create plugins than the default N+ way. It is only a layer on top of the
 default way, so you can still use the default way to create plugins.
 
 Some features of this core are:
@@ -9,7 +9,7 @@ Some features of this core are:
 - Documentation
 - Full type hints support
 - Command decorator
-- Non blocking commands
+- Non-blocking commands
 - Periodic tasks support
 - Automatic update checking
 - Detect changes in settings
@@ -90,7 +90,6 @@ provided documentation. You can use the [online documentation][docs] or easily
 build it yourself locally.
 
 ```sh
-
 git clone https://github.com/Nachtalb/npc.git
 cd npc
 poetry install --with docs
@@ -98,13 +97,13 @@ poetry run build-docs
 poetry run open-docs
 ```
 
-Once you've built and opened the documentation you will find a guide on how to
+Once you've built and opened the documentation, you will find a guide on how to
 use this core step by step under [Installation][installation-docs]. Enjoy!
 
 ## Credits and Thanks
 
-This project is based on the work of the [Nicotine+][n+] team and the their
-plugin system.
+This project is based on the work of the [Nicotine+][n+] team and their plugin
+system.
 
 ## License
 
