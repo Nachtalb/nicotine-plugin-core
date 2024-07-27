@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx_paramlinks",
     "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel",
     "sphinx_inline_tabs",
     "sphinxcontrib.mermaid",
     "sphinx_search.extension",

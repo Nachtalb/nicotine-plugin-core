@@ -103,6 +103,7 @@ This package requires python 3.9 or higher.
     :caption: Installation
 
     installation
+    scripts
 
 .. toctree::
     :hidden:

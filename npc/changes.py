@@ -19,4 +19,8 @@ changes to the documentation build process. These changes are documented in this
 
 .. versionadded:: 0.3.2 Export * from ``npc`` module in root ``__init__.py``, in order
     to make imports easier, when this package is used in another party plugin.
+.. versionchanged:: 0.3.2 Updated ``scripts.py`` and ``generate_changelog.py`` to be
+    usable in plugins using this package. Just copy them over and use them as is.
+.. versionchanged:: 0.3.2 Document the use of all the :doc:`scripts <scripts>` in this
+    package.
 """
