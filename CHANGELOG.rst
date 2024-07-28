@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.3.5
+-----
+
+* Changed: [:meth:`npc.BasePlugin._setup_commands`] Add support for Nicotine+ < 3.3.0 legacy command system
+* Changed: [:func:`npc.command`] Support legacy command system for Nicotine+ < 3.3.0
+* Changed: [:class:`npc.logging.NLogHandler`] Fix logging on Nicotine+ < 3.3.3
+* Changed: [:func:`npc.log`] Fix logging on Nicotine+ < 3.3.3
+* Changed: [:meth:`npc.Version.parse`] Properly parse version strings with alpha, beta, and dev releases. Fixing recognition of dev version in config.
+
 0.3.4
 -----
 
