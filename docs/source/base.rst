@@ -5,3 +5,4 @@ Plugin Base
 
 .. autoclass:: npc.BasePlugin
     :members:
+    :private-members:

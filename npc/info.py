@@ -33,6 +33,10 @@ from pynicotine.logfacility import log as nlog
 
 try:
     from pynicotine import __version__ as NICOTINE_VERSION
+
+    if not isinstance(NICOTINE_VERSION, str):
+        # This is a workaround for the building documentation
+        NICOTINE_VERSION = "3.3.5"
 except ImportError:
     from pynicotine.config import config as pynicotine_config
 
