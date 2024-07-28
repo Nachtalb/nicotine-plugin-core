@@ -46,7 +46,20 @@ import re
 import shlex
 from functools import wraps
 from threading import Thread
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Optional, TypeVar, Union, get_args, get_origin, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+    overload,
+)
 
 try:
     from types import NoneType  # type: ignore[attr-defined]  # Added in Python 3.10
@@ -54,8 +67,10 @@ except ImportError:
     NoneType = type(None)
 
 
+from .info import IS_LEGACY
 from .logging import LOGGER, log
 from .types import AnyInputCallback, Callback, Command, CommandGroup, CommandInterface, DefaultCallback, ReturnCode
+from .utils import is_function_in_stacktrace
 
 if TYPE_CHECKING:
     from .base import BasePlugin
@@ -259,6 +274,8 @@ def command(
 
     .. seealso:: :class:`npc.types.Command` for more information on the parameters
 
+    .. versionchanged:: 0.3.5 Support legacy command system for Nicotine+ < 3.3.0
+
     Args:
         func_or_name (:obj:`str` | :obj:`npc.types.Callback`, optional): Name of the
             command or the function to be decorated
@@ -335,41 +352,102 @@ def command(
         if parameters_cli:
             command["parameters_cli"] = parameters_cli
 
+        def parse_cmd_args(args: str, room: Optional[str] = None, user: Optional[str] = None) -> List[str]:
+            """Parse the command arguments according to the function's annotations
+
+            Args:
+                args (:obj:`str`): Arguments to be parsed
+                room (:obj:`str`, optional): Room where the command was called
+                user (:obj:`str`, optional): User who called the command
+
+            Returns:
+                :obj:`list` of :obj:`str`: Parsed arguments
+
+            Raises:
+                ValueError: If not enough arguments are provided
+                ValueError: If an argument could not be parsed
+            """
+            from . import CONFIG  # Import here to avoid circular import
+
+            user_args = shlex.split(args)
+
+            if (" ".join(command.get("parameters", []))).count("<") > len(user_args):
+                log(
+                    f'Not enough arguments provided for command: "{name}", expected: {len(command["parameters"])}',
+                    title=f"[{CONFIG['name']}]: Not enough arguments in command \"{name}\"",
+                )
+                raise ValueError("Not enough arguments provided")
+
+            parameters = inspect.signature(func).parameters.items()
+            parameters = list(parameters)[1:]  # type: ignore[assignment]  # Skip self
+            new_args: List[Any] = []
+            for (arg_name, parameter), arg_value in zip(parameters, user_args):
+                if arg_name == "room":
+                    new_args.append(room)
+                elif arg_name == "user":
+                    new_args.append(user)
+                else:
+                    try:
+                        new_args.append(_parse_according_to_annotation(parameter.annotation, arg_value))
+                    except ValueError as e:
+                        log(
+                            f'Failed to parse argument: "{arg_name}" with value: "{arg_value}" - {e}',
+                            title=f"[{CONFIG['name']}]: Failed to parse arguments in command \"{name}\"",
+                        )
+                        raise ValueError(f"Failed to parse argument: {arg_name} with value: {arg_value}") from e
+            return new_args
+
+        def run_func(args: Iterable[Any]) -> Optional[ReturnCode]:
+            if daemonize:
+                Thread(target=func, args=(args), daemon=True).start()
+                return daemonize_return
+            return func(*args)
+
+        @wraps(func)
+        def legacy_wrapper(self: "BasePlugin", source: str, args: str) -> Optional[ReturnCode]:
+            LOGGER.info(f"Legacy Command: {name}, Args: {args}, Source: {source}")
+
+            if is_function_in_stacktrace("trigger_public_command_event"):
+                room = source
+                user = None
+            else:
+                room = None
+                user = source
+
+            final_args: List[Any]
+            if parse_args:
+                try:
+                    final_args = parse_cmd_args(args, room, user)
+                except ValueError:
+                    return ReturnCode.PASS
+                LOGGER.info(f"Legacy Command: {name}, Args: {final_args} - Parsed")
+            else:
+                final_args = [args, room, user]
+                LOGGER.info(f"Legacy Command: {name}, Args: {args} - Not Parsed")
+
+            return run_func((self, *final_args))
+
         @wraps(func)
         def wrapper(
             self: "BasePlugin", args: str, *, room: Optional[str] = None, user: Optional[str] = None
         ) -> Optional[ReturnCode]:
+            final_args: List[Any]
             if parse_args:
-                user_args = shlex.split(args)
-                parameters = inspect.signature(func).parameters.items()
-                parameters = list(parameters)[1:]  # type: ignore[assignment]  # Skip self
-                new_args: List[Any] = []
-                for (arg_name, parameter), arg_value in zip(parameters, user_args):
-                    if arg_name == "room":
-                        new_args.append(room)
-                    elif arg_name == "user":
-                        new_args.append(user)
-                    else:
-                        try:
-                            new_args.append(_parse_according_to_annotation(parameter.annotation, arg_value))
-                        except ValueError as e:
-                            from . import CONFIG  # Import here to avoid circular import
-
-                            log(
-                                f'Failed to parse argument: "{arg_name}" with value: "{arg_value}" - {e}',
-                                title=f"[{CONFIG['name']}]: Failed to parse arguments in command \"{name}\"",
-                            )
-                            return ReturnCode.BREAK
-                final_args = new_args
+                try:
+                    final_args = parse_cmd_args(args, room, user)
+                except ValueError:
+                    return ReturnCode.PASS
                 LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Parsed")
             else:
                 final_args = [args, room, user]
                 LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Not Parsed")
 
-            if daemonize:
-                Thread(target=func, args=(self, final_args), daemon=True).start()
-                return daemonize_return
-            return func(self, *final_args)
+            return run_func((self, *final_args))
+
+        if IS_LEGACY:
+            setattr(legacy_wrapper, "command", command)
+            setattr(legacy_wrapper, "command_name", name)
+            return legacy_wrapper  # type: ignore[return-value]
 
         setattr(wrapper, "command", command)
         setattr(wrapper, "command_name", name)

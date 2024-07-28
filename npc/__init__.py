@@ -19,7 +19,7 @@ from .config import (
     TextArea,
     TextView,
 )
-from .info import BASE_PATH, CONFIG, __version__
+from .info import BASE_PATH, CONFIG, IS_LEGACY, NICOTINE_VERSION, __version__
 from .logging import LOGGER, log
 from .requests import Response, get, post
 from .threading import PeriodicJob
@@ -70,6 +70,7 @@ __all__ = [
     "FileChooser",
     "Float",
     "Folder",
+    "IS_LEGACY",
     "Image",
     "Int",
     "LOGGER",
@@ -78,6 +79,7 @@ __all__ = [
     "LogLevel",
     "MetaSetting",
     "MetaSettings",
+    "NICOTINE_VERSION",
     "Number",
     "PeriodicJob",
     "PluginConfig",

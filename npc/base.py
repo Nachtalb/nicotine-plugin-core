@@ -21,24 +21,26 @@ from abc import ABC
 from pathlib import Path
 from textwrap import dedent
 from threading import Thread
-from typing import Any, Optional, Set, Tuple, Union
-
-try:
-    from pynicotine import __version__ as pynicotine_version
-except ImportError:
-    from pynicotine.config import config as pynicotine_config
-
-    pynicotine_version = pynicotine_config.version
+from typing import Any, List, Optional, Set, Tuple, Union
 
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
 from .command import command
 from .config import BaseConfig, Bool, Int
-from .info import BASE_PATH, CONFIG, __version__
+from .info import BASE_PATH, CONFIG, IS_LEGACY, NICOTINE_VERSION, __version__
 from .logging import NLogHandler, log
 from .requests import get
 from .threading import PeriodicJob
-from .types import Commands, LegacyCommands, MetaSettings, PluginConfig, ReturnCode, Settings, SettingsDiff
+from .types import (
+    CommandInterface,
+    Commands,
+    LegacyCommands,
+    MetaSettings,
+    PluginConfig,
+    ReturnCode,
+    Settings,
+    SettingsDiff,
+)
 from .utils import reload_plugin
 from .version import Version
 
@@ -167,7 +169,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
         self.log.debug("Initializing plugin")
         self.log.info(
-            f"Running {self.__name__} plugin version {self.plugin_config['version']} on Nicotine+ {pynicotine_version} with Python {sys.version}"
+            f"Running {self.__name__} plugin version {self.plugin_config['version']} on Nicotine+ {NICOTINE_VERSION}{' (legacy)' if IS_LEGACY else ''} with Python {sys.version}"
         )
         self.auto_update = PeriodicJob(
             name="AutoUpdate",
@@ -189,8 +191,35 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         else:
             self.log.info("No version defined in plugin config")
 
+    @command
+    def help(self) -> None:
+        """Show help for the plugin commands"""
+        if not IS_LEGACY:
+            self.window(
+                "This version of Nicotine+ has a builtin help command. Use /help to see the available commands."
+            )
+            return
+
+        command_list: List[str] = []
+        methods = inspect.getmembers(self, predicate=inspect.ismethod)
+        prefix = self.plugin_config.get("prefix", "")
+        for name, method in methods:
+            if hasattr(method, "command"):
+                command = method.command
+                command_name = prefix + getattr(method, "command_name", name)
+                command_args = " ".join(command.get("parameters", []))
+                command_args = f" {command_args}" if command_args else ""
+                command_list.append(f"/{command_name}{command_args}: {command.get('description', 'No description')}")
+
+        commands = "- " + "\n- ".join(command_list)
+        self.log.info(f"Commands for {self.__name__}:\n{commands}")
+
     def _setup_commands(self) -> None:
-        """Setup commands from methods decorated with @command"""
+        """Setup commands from methods decorated with @command
+
+        .. versionchanged:: 0.3.5 Add support for Nicotine+ < 3.3.0 legacy command system
+
+        """
         self.log.debug("Setting up commands")
         prefix = self.plugin_config.get("prefix")
 
@@ -201,7 +230,14 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 command_name = getattr(method, "command_name", name)
                 command_name = f"{prefix}{command_name}" if prefix else command_name
                 command["callback"] = method
-                self.commands[command_name] = command
+
+                if IS_LEGACY:
+                    if CommandInterface.CHATROOM not in command.get("disable", []):
+                        self.__publiccommands__.append((command_name, method))
+                    if CommandInterface.PRIVATE_CHAT not in command.get("disable", []):
+                        self.__privatecommands__.append((command_name, method))
+                else:
+                    self.commands[command_name] = command
                 self.log.debug(f"Command {command_name} added {command['callback']}, {method}")
 
         self.log.debug(f"Commands setup complete: {self.commands}")

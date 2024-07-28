@@ -16,6 +16,7 @@ Example:
         reload_plugin("MyPlugin", "AnotherPlugin", handler)
 """
 
+import inspect
 import os
 import platform
 import subprocess
@@ -25,7 +26,7 @@ from pynicotine.pluginsystem import PluginHandler
 
 from .logging import log
 
-__all__ = ["startfile", "reload_plugin"]
+__all__ = ["startfile", "reload_plugin", "is_function_in_stacktrace"]
 
 
 def startfile(file: str) -> None:
@@ -69,3 +70,21 @@ def reload_plugin(name: str, plugin_name: str, handler: PluginHandler) -> bool:
         return False
     log(f"# {name}: Successfully reloaded plugin {plugin_name}", title="Plugin Reload")
     return True
+
+
+def is_function_in_stacktrace(function_name: str) -> bool:
+    """Check if a function is in the current stacktrace
+
+    Args:
+        function_name (:obj:`str`): Name of the function to be checked
+
+    Returns:
+        :obj:`bool`: Whether the function is in the current stacktrace
+    """
+    stack = inspect.stack()
+
+    for frame_info in stack:
+        if frame_info.function == function_name:
+            return True
+
+    return False

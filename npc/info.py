@@ -31,9 +31,17 @@ from typing import Optional
 
 from pynicotine.logfacility import log as nlog
 
-from .types import PluginConfig
+try:
+    from pynicotine import __version__ as NICOTINE_VERSION
+except ImportError:
+    from pynicotine.config import config as pynicotine_config
 
-__all__ = ["BASE_PATH", "CONFIG", "__version__", "load_npc_package_config"]
+    NICOTINE_VERSION = pynicotine_config.version
+
+from .types import PluginConfig
+from .version import Version
+
+__all__ = ["BASE_PATH", "CONFIG", "__version__", "IS_LEGACY", "NICOTINE_VERSION"]
 
 
 def load_config(path: Path) -> PluginConfig:
@@ -145,3 +153,6 @@ else:
 
 __version__ = CONFIG["version"]
 """Plugin version"""
+
+
+IS_LEGACY = Version.parse(NICOTINE_VERSION) < Version.parse("3.3.0")
