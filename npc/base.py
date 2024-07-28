@@ -14,10 +14,10 @@ Some default functionality that is provided by the BasePlugin class:
 
 import inspect
 import json
+import logging
 import re
 import sys
 from abc import ABC
-from logging import Formatter, Logger
 from pathlib import Path
 from textwrap import dedent
 from threading import Thread
@@ -143,11 +143,11 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.metasettings = self.config.model_metasettings()
 
         handler = NLogHandler()
-        format = Formatter(
+        format = logging.Formatter(
             "%(name)s - %(levelname)s - %(message)s"
         )  # %(asctime)s not needed as it's already added by n+
         handler.setFormatter(format)
-        self.log = Logger(self.__name__)
+        self.log = logging.Logger(self.__name__)
         self.log.addHandler(handler)
 
         self._setup_commands()
@@ -369,6 +369,8 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         react to settings changes. The default implementation logs the changes
         and updates the log level if the verbose setting is changed.
 
+        .. versionchanged:: 0.3.4 Fixed still logging debug messages when verbose is disabled
+
         Args:
             before (:obj:`npc.types.Settings`): Complete settings before the change
             after (:obj:`npc.types.Settings`): Complete settings after the change
@@ -377,7 +379,12 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.log.info(f"Settings change: {json.dumps(change)}")
 
         if "verbose" in change["after"]:
-            self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+            new_level = logging.DEBUG if change["after"]["verbose"] else logging.INFO
+            self.log.setLevel(new_level)
+            # This should be done in the logging module, but for some reason it doesn't work
+            # so we have to clear the cache manually
+            self.log._cache.clear()  # type: ignore[attr-defined]
+
             self.log.info(f"Verbose logging {'enabled' if self.config.verbose else 'disabled'}")
 
     def window(self, message: str, title: Optional[str] = None) -> None:

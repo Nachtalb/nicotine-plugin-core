@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.4
+-----
+
+* Changed: [:meth:`npc.BasePlugin.settings_changed`] Fixed still logging debug messages when verbose is disabled
+
 0.3.2
 -----
 
