@@ -62,10 +62,13 @@ def load_config(path: Path) -> PluginConfig:
         key, _, value = line.partition("=")
         config[key.strip().lower()] = ast.literal_eval(value.strip())  # type: ignore[literal-required]
 
-    if "dev" in config["version"]:
+    version = Version.parse(config["version"])
+    if version.is_prerelease:
         if config["prefix"]:
-            nlog(
-                f'{config["name"]} - WARNING - Attention: You are running this in dev mode. Prefix will be /d{config["prefix"]}'
+            nlog.add(
+                f'{config["name"]} - WARNING - Attention: You are running this plugin in dev mode. '
+                f'Prefix will be /d{config["prefix"]} instead of /{config["prefix"]} to prevent '
+                'conflicts with the stable version.'
             )
             config["prefix"] = "d" + config["prefix"]
         config["name"] += " DEV"

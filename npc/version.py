@@ -123,6 +123,10 @@ class Version:
             Version such as ``1.2`` or simply ``1`` will be parsed as
             ``1.2.0`` and ``1.0.0`` respectively.
 
+
+        .. versionchanged:: 0.3.5 Properly parse version strings with alpha, beta, and
+            dev releases. Fixing recognition of dev version in config.
+
         Args:
             *version (:obj:`str`, :obj:`int`) : Version string or tuple of
                 version parts. If length is 1, it will be split by "." and
@@ -135,7 +139,7 @@ class Version:
             :obj:`ValueError`: If version cannot be parsed
         """
         if len(version) == 1 and isinstance(version[0], str):
-            match = re.match(r"v?(\d+)\.?(\d+)?\.?(\d+)?(?:[-.]?(?:a|alpha|b|beta|dev)\.?(\d+)?)?", version[0])
+            match = re.match(r"v?(\d+)\.?(\d+)?\.?(\d+)?(?:[-.]?(a|alpha|b|beta|dev)\.?(\d+)?)?", version[0])
             if not match:
                 raise ValueError(f"Version {version} cannot be parsed")
             version_parts = match.groups()
@@ -156,7 +160,7 @@ class Version:
             elif version_parts[3].startswith("dev"):
                 prerelease = "dev"
 
-            prerelease_num = int(version_parts[3].split(".")[-1]) if version_parts[3].split(".")[-1].isdigit() else None
+            prerelease_num = int(version_parts[4]) if version_parts[4] is not None else 0
 
         return Version(major, minor, patch, prerelease, prerelease_num)
 
