@@ -60,6 +60,8 @@ class NLogHandler(logging.Handler):
 
     This handler will emit log records using Nicotine+'s log facility.
 
+    .. versionchanged:: 0.3.5 Fix logging on Nicotine+ < 3.3.3
+
     Example:
 
         .. code-block:: python
@@ -97,8 +99,8 @@ class NLogHandler(logging.Handler):
         # Convert the log record to a string
         message = self.format(record)
 
-        # Call the nlog._add method
-        nlog._add(msg=message, msg_args={})
+        # Call the Nicotine+ log function
+        nlog.add(msg=message, msg_args=None)
 
 
 def log(
@@ -119,6 +121,8 @@ def log(
         why this prefix is provided instead of just using the level is because
         Nicotine+ filters out unknown log levels, thus no custom prefix would
         be shown.
+
+    .. versionchanged:: 0.3.5 Fix logging on Nicotine+ < 3.3.3
 
     Args:
         message (:obj:`str`): Message to be logged
@@ -144,13 +148,24 @@ def log(
     if prefix:
         message = f"{prefix}: {message}"
 
-    nlog._add(
-        msg=message,
-        msg_args=message_args,
-        title=title,
-        level=level,
-        should_log_file=should_log_to_file,
-    )
+    if hasattr(nlog, "_add"):
+        # Nicotine+ >= 3.3.3
+        nlog._add(
+            msg=message,
+            msg_args=message_args,
+            title=title,
+            level=level,
+            should_log_file=should_log_to_file,
+        )
+    else:
+        # Nicotine+ < 3.3.3
+        nlog.add(
+            msg=message,
+            msg_args=message_args,
+            title=title,
+            level=level,
+            should_log_file=should_log_to_file,
+        )
 
 
 handler = NLogHandler()

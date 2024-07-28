@@ -23,6 +23,13 @@ from textwrap import dedent
 from threading import Thread
 from typing import Any, Optional, Set, Tuple, Union
 
+try:
+    from pynicotine import __version__ as pynicotine_version
+except ImportError:
+    from pynicotine.config import config as pynicotine_config
+
+    pynicotine_version = pynicotine_config.version
+
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
 from .command import command
@@ -159,6 +166,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         place to do any setup that requires the user settings to be loaded.
         """
         self.log.debug("Initializing plugin")
+        self.log.info(
+            f"Running {self.__name__} plugin version {self.plugin_config['version']} on Nicotine+ {pynicotine_version} with Python {sys.version}"
+        )
         self.auto_update = PeriodicJob(
             name="AutoUpdate",
             delay=self.config.check_update_interval * 60,
@@ -170,6 +180,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.settings_watcher.start()
 
         self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+        # This should be done in the logging module, but for some reason it doesn't work
+        # so we have to clear the cache manually
+        self.log._cache.clear()  # type: ignore[attr-defined]
 
         if self.plugin_config["version"]:
             self.log.info("Running version %s", self.plugin_config["version"])
