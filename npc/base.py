@@ -170,6 +170,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.settings_watcher.start()
 
         self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+        # This should be done in the logging module, but for some reason it doesn't work
+        # so we have to clear the cache manually
+        self.log._cache.clear()  # type: ignore[attr-defined]
 
         if self.plugin_config["version"]:
             self.log.info("Running version %s", self.plugin_config["version"])
