@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Generic, List, Optional, Protocol, Tuple
 
 __all__ = [
     "LogLevel",
+    "LegacyLogLevel",
     "PluginConfig",
     "Readable",
     "SettingsDiff",
