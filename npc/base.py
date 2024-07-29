@@ -254,8 +254,12 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
     @command(daemonize_return=ReturnCode.ZAP)
     def check_update(self) -> None:
-        """Check for updates"""
-        self._check_update(self.config.preview_versions)
+        """Check for updates
+
+        .. versionchanged:: 0.3.6 Show window if no updates are available
+        """
+        if self._check_update(self.config.preview_versions) is None:
+            self.window("No updates available", title="Update check")
 
     def _check_update(self, preview: bool = False) -> Union[None, Version]:
         """Actual update check implementation
