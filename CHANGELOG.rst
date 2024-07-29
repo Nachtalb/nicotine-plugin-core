@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.3.6
+-----
+
+* Changed: [:meth:`npc.BasePlugin.check_update`] Show window if no updates are available
+* Changed: [:func:`npc.log`] Fix windowed messages on Nicotine+ < 3.3.0
+* Added: [:class:`npc.LegacyLogLevel`] Fix windowed messages on Nicotine+ < 3.3.0
+
 0.3.5
 -----
 
