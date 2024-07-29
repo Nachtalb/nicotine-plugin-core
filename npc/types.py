@@ -61,6 +61,38 @@ class LogLevel(str, Enum):
     MISCELLANEOUS = "miscellaneous"
 
 
+class LegacyLogLevel(str, Enum):
+    """Legacy "Log Levels" for the logger of N+ below 3.3.0
+
+    .. versionadded:: 0.3.6 Fix windowed messages on Nicotine+ < 3.3.0
+
+    Attributes:
+        MESSAGE: Log level for message messages
+        IMPORTANT_INFO: Log level for window dialogue messages (always shown)
+        IMPORTANT_ERROR: Log level for window dialogue error messages (always shown)
+        WINDOW: Alias for IMPORTANT_INFO
+        WINDOW_ERROR: Alias for IMPORTANT_ERROR
+        DOWNLOAD: Log level for download messages
+        UPLOAD: Log level for upload messages
+        SEARCH: Log level for search messages
+        CHAT: Log level for chat messages
+        CONNECTION: Log level for connection
+    """
+
+    MESSAGE = "message"
+    IMPORTANT_INFO = "important_info"
+    WINDOW = "important_info"
+    IMPORTANT_ERROR = "important_error"
+    WINDOW_ERROR = "important_error"
+    DOWNLOAD = "download"
+    UPLOAD = "upload"
+    SEARCH = "search"
+    CHAT = "chat"
+    CONNECTION = "connection"
+    TRANSFER = "transfer"
+    MISCELLANEOUS = "miscellaneous"
+
+
 # === PLUGIN ===
 
 

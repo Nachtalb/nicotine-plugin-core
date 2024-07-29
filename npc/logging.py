@@ -43,12 +43,12 @@ Example:
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pynicotine.logfacility import log as nlog
 
-from .info import CONFIG
-from .types import LogLevel
+from .info import CONFIG, IS_LEGACY
+from .types import LegacyLogLevel, LogLevel
 
 __all__ = ["log", "LOGGER", "NLogHandler"]
 
@@ -106,7 +106,7 @@ class NLogHandler(logging.Handler):
 def log(
     message: str,
     *message_args: Any,
-    level: LogLevel = LogLevel.DEFAULT,
+    level: Union[LogLevel, LegacyLogLevel] = LogLevel.DEFAULT,
     prefix: Optional[str] = None,
     title: Optional[str] = None,
     windowed: bool = False,
@@ -123,43 +123,57 @@ def log(
         be shown.
 
     .. versionchanged:: 0.3.5 Fix logging on Nicotine+ < 3.3.3
+    .. versionchanged:: 0.3.6 Fix windowed messages on Nicotine+ < 3.3.0
 
     Args:
         message (:obj:`str`): Message to be logged
         message_args (:obj:`typing.Any`) : Arguments to be formatted in the message.
             Common log python log arguments such as ``%s``, ``%d``, etc. can
             be used
-        level (:obj:`npc.types.LogLevel`, optional): Log level, will be prefixed to the
-            message in the format ``[LEVEL]: message``
+        level (:obj:`npc.types.LogLevel` | :obj:`npc.types.LegacyLogLevel`, optional):
+            Log level, will be prefixed to the message in the format ``[LEVEL]: message``
         prefix (:obj:`str`, optional): Prefix to be added to the message, will
             be prefixed to the message in the format "PREFIX: message"
         title (:obj:`str`, optional): Title of the message, will force windowed
-            to True
+            to True. In N+ below 3.3.0 the title will be ignored while still showing
+            the message in a window.
         windowed (:obj:`bool`, optional): Whether the message should be shown
             in a window. If title is not provided, it will be set to the name
-            of the plugin.
+            of the plugin. On N+ below 3.3.0, this will override the level to
+            :attr:`npc.types.LegacyLogLevel.IMPORTANT_INFO` unless the level is
+            :attr:`npc.types.LegacyLogLevel.IMPORTANT_ERROR`.
         should_log_to_file (:obj:`bool`, optional): Whether the message should
             be logged to the file
     """
-    if windowed and not title:
-        from . import CONFIG  # Import here to avoid circular import
-
-        title = CONFIG["name"]
     if prefix:
         message = f"{prefix}: {message}"
 
-    if hasattr(nlog, "_add"):
-        # Nicotine+ >= 3.3.3
-        nlog._add(
+    if IS_LEGACY:
+        if title and level not in (LegacyLogLevel.IMPORTANT_INFO, LegacyLogLevel.IMPORTANT_ERROR):
+            log("WARNING - Level ignored on legacy Nicotine+ versions if title is provided")
+
+        if (windowed or title) and level != LegacyLogLevel.IMPORTANT_ERROR:
+            level = LegacyLogLevel.IMPORTANT_INFO
+
+        if level in (LegacyLogLevel.IMPORTANT_INFO, LegacyLogLevel.IMPORTANT_ERROR) and not prefix:
+            from . import CONFIG
+
+            # As titles are not supported on legacy, add the prefix to the message
+            message = f"[{CONFIG['name']}]: {message}"
+
+        nlog.add(
             msg=message,
             msg_args=message_args,
-            title=title,
             level=level,
             should_log_file=should_log_to_file,
         )
     else:
-        # Nicotine+ < 3.3.3
-        nlog.add(
+        if windowed and not title:
+            from . import CONFIG  # Import here to avoid circular import
+
+            title = CONFIG["name"]
+
+        nlog._add(
             msg=message,
             msg_args=message_args,
             title=title,
