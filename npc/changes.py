@@ -27,4 +27,6 @@ changes to the documentation build process. These changes are documented in this
 .. versionchanged:: 0.3.2
     Document the use of all the :doc:`scripts <scripts>` in this
     package.
+
+.. versionadded:: 0.4.0 [:data:`npc.IS_DEV`] Explicit flag for development versions
 """

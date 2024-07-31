@@ -18,6 +18,11 @@ Info
 
     Version of the plugin (not npc but the plugin using npc)
 
+.. py:data:: npc.IS_DEV
+    :type: str
+
+    Explicit flag to check if the plugin is in development mode (not npc but the plugin using npc)
+
 .. autofunction:: npc.info.find_file_in_parents
 
 .. autofunction:: npc.info.load_config

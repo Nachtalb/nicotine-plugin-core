@@ -27,7 +27,7 @@ from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
 from .command import command
 from .config import BaseConfig, Bool, Int
-from .info import BASE_PATH, CONFIG, IS_LEGACY, NICOTINE_VERSION, __version__
+from .info import BASE_PATH, CONFIG, IS_DEV, IS_LEGACY, NICOTINE_VERSION, __version__
 from .logging import NLogHandler, log
 from .requests import get
 from .threading import PeriodicJob
@@ -127,7 +127,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
         check_update = Bool("Check for updates", default=True)
         check_update_interval = Int("Update check interval (minutes)", default=60 * 6)
-        preview_versions = Bool("Check for preview versions", default="dev" in __version__)
+        preview_versions = Bool("Check for preview versions", default=IS_DEV)
         verbose = Bool("Verbose logging", default=True)
 
     settings: Settings

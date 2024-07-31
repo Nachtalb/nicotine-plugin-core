@@ -27,7 +27,7 @@ import ast
 import configparser
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 from pynicotine.logfacility import log as nlog
 
@@ -45,17 +45,19 @@ except ImportError:
 from .types import PluginConfig
 from .version import Version
 
-__all__ = ["BASE_PATH", "CONFIG", "__version__", "IS_LEGACY", "NICOTINE_VERSION"]
+__all__ = ["BASE_PATH", "CONFIG", "__version__", "IS_LEGACY", "NICOTINE_VERSION", "IS_DEV"]
 
 
-def load_config(path: Path) -> PluginConfig:
+def load_config(path: Path) -> Tuple[PluginConfig, bool]:
     """Load the plugin configuration from the given file
+
+    .. versionchanged:: 0.4.0 Return whether the plugin is a development version
 
     Args:
         path (:obj:`pathlib.Path`): Path to the configuration file
 
     Returns:
-        :obj:`npc.types.PluginConfig`: Plugin configuration
+        :obj:`tuple`: Plugin configuration and whether it is a development version
     """
     content = path.read_text()
     config = PluginConfig(
@@ -84,8 +86,9 @@ def load_config(path: Path) -> PluginConfig:
             )
             config["prefix"] = "d" + config["prefix"]
         config["name"] += " DEV"
+        return config, True
 
-    return config
+    return config, False
 
 
 def find_file_in_parents(file: str, start: Path) -> Optional[Path]:
@@ -138,6 +141,11 @@ FALLBACK_CONFIG = PluginConfig(
 )
 """Fallback configuration in case the plugin info file is not found"""
 
+IS_DEV = False
+"""Whether the plugin is a development version
+
+.. versionadded:: 0.4.0 Explicit flag for development versions
+"""
 
 if path := find_file_in_parents("PLUGININFO", Path(__file__).parent):
     BASE_PATH = path.parent
@@ -145,7 +153,7 @@ if path := find_file_in_parents("PLUGININFO", Path(__file__).parent):
 
     config_file = BASE_PATH / "PLUGININFO"
     """Path to the plugin info file"""
-    CONFIG = load_config(config_file)
+    CONFIG, IS_DEV = load_config(config_file)
     """Plugin info"""
 else:
     print("Could not find the base path of the plugin directory", file=sys.stderr)
