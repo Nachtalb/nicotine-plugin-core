@@ -193,12 +193,16 @@ class Field:
     .. versionchanged:: 0.3.1 Removed `plugin` as a parameter for the
         :paramref:`from_value` function.
 
+    .. versionchanged:: 0.4.0
+        Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (:obj:`str`): The label of the setting.
         default (:obj:`typing.Any`): The default value of the setting.
         type (:obj:`npc.types.SettingType`): The type of the setting.
         name (:obj:`str`, optional): The name of the setting. If not provided it
         will later be set by the BaseConfig.
+        description (:obj:`str`, optional): The description of the setting.
         to_value (:obj:`typing.Callable`, optional): A function to get the value of
             the setting.
         from_value (:obj:`typing.Callable`, optional): A function to set the value of
@@ -219,15 +223,17 @@ class Field:
 
     def __init__(
         self,
-        description: str,
+        label: str,
         default: Any,
         type: SettingType,
+        description: Optional[str] = "",
         name: Optional[str] = None,
         to_value: Optional[Callable[[Any, "Field", "BasePlugin"], Any]] = None,
         from_value: Optional[Callable[[Any, "Field"], Any]] = None,
         **options: Any,
     ) -> None:
         self.name = name or ""  # If not provided it will later be set by the BaseConfig
+        self.label = label
         self.description = description
         self.default = default
         self.type = type
@@ -235,6 +241,22 @@ class Field:
 
         self.to_value_func = to_value
         self.from_value_func = from_value
+
+    @property
+    def metasettings_description(self) -> str:
+        """Label for the settings dialog window
+
+        The metasettings do not have separate labels and descriptions. Thus
+        we just combine them with a newline.
+
+        .. versionadded:: 0.4.0 Added property combining label and description
+
+        Returns:
+            :obj:`str`: The label of the setting.
+        """
+        if self.description:
+            return f"{self.label}\n{self.description}"
+        return self.label
 
     def metasetting(self) -> MetaSetting:
         """Convert the field to a metasetting
@@ -244,7 +266,7 @@ class Field:
         """
         setting = MetaSetting(
             {
-                "description": self.description,
+                "description": self.metasettings_description,
                 "type": self.type,
             }
         )
@@ -283,11 +305,15 @@ class Field:
         return value
 
 
-def String(description: str, default: str = "", name: Optional[str] = None) -> str:
+def String(label: str, description: Optional[str] = "", default: str = "", name: Optional[str] = None) -> str:
     """A configuration field for one line string input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`, optional): The name of the setting.
@@ -296,11 +322,12 @@ def String(description: str, default: str = "", name: Optional[str] = None) -> s
         :obj:`str`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return Field(description=description, default=default, type=SettingType.STR, name=name)  # type: ignore[return-value]
+    return Field(label=label, description=description, default=default, type=SettingType.STR, name=name)  # type: ignore[return-value]
 
 
 def Int(
-    description: str,
+    label: str,
+    description: Optional[str] = "",
     default: int = 0,
     name: Optional[str] = None,
     maximum: int = 9999999,
@@ -309,11 +336,15 @@ def Int(
 ) -> int:
     """A configuration field for a integer input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Note:
         Available aliases: ``Number``
 
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`): The name of the setting.
@@ -329,6 +360,7 @@ def Int(
             setting on config initialization
     """
     return Field(
+        label=label,
         description=description,
         default=default,
         type=SettingType.INT,
@@ -343,7 +375,8 @@ Number = Int
 
 
 def Float(
-    description: str,
+    label: str,
+    description: Optional[str] = "",
     default: float = 0.0,
     name: Optional[str] = None,
     maximum: float = 9999999.0,
@@ -352,8 +385,12 @@ def Float(
 ) -> float:
     """A configuration field for a float input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`, optional): The name of the setting.
@@ -369,6 +406,7 @@ def Float(
             setting on config initialization
     """
     return Field(
+        label=label,
         description=description,
         default=default,
         type=SettingType.FLOAT,
@@ -379,14 +417,18 @@ def Float(
     )  # type: ignore[return-value]
 
 
-def Bool(description: str, default: bool = False, name: Optional[str] = None) -> bool:
+def Bool(label: str, description: Optional[str] = "", default: bool = False, name: Optional[str] = None) -> bool:
     """A configuration field for a boolean checkbox
+
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
 
     Note:
         Available aliases: ``Checkbox``
 
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting. Defaults to "".
         name (:obj:`str`, optional): The name of the setting.
 
@@ -394,20 +436,24 @@ def Bool(description: str, default: bool = False, name: Optional[str] = None) ->
         :obj:`bool`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return Field(description=description, default=default, type=SettingType.BOOL, name=name)  # type: ignore[return-value]
+    return Field(label=label, description=description, default=default, type=SettingType.BOOL, name=name)  # type: ignore[return-value]
 
 
 Checkbox = Bool
 
 
-def TextView(description: str, default: str, name: Optional[str] = None) -> str:
+def TextView(label: str, description: Optional[str] = "", default: str = "", name: Optional[str] = None) -> str:
     """A configuration field for a multi-line text input
+
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
 
     Note:
         Available aliases: :data:`Text`, :data:`TextArea`
 
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`): The name of the setting.
@@ -416,17 +462,23 @@ def TextView(description: str, default: str, name: Optional[str] = None) -> str:
         :obj:`str`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return Field(description=description, default=default, type=SettingType.TEXTVIEW, name=name)  # type: ignore[return-value]
+    return Field(label=label, description=description, default=default, type=SettingType.TEXTVIEW, name=name)  # type: ignore[return-value]
 
 
 Text = TextArea = TextView
 
 
-def Dropdown(description: str, options: List[str], default: str = "", name: Optional[str] = None) -> str:
+def Dropdown(
+    label: str, description: Optional[str] = "", options: List[str] = [], default: str = "", name: Optional[str] = None
+) -> str:
     """A configuration field for a dropdown input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         options (:obj:`list` of :obj:`str`): The options for the dropdown.
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
@@ -436,14 +488,22 @@ def Dropdown(description: str, options: List[str], default: str = "", name: Opti
         :obj:`str`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return Field(description=description, default=default, type=SettingType.DROPDOWN, options=options, name=name)  # type: ignore[return-value]
+    return Field(
+        label=label, description=description, default=default, type=SettingType.DROPDOWN, options=options, name=name
+    )  # type: ignore[return-value]
 
 
-def Radio(description: str, options: List[str], default: str = "", name: Optional[str] = None) -> str:
+def Radio(
+    label: str, description: Optional[str] = "", options: List[str] = [], default: str = "", name: Optional[str] = None
+) -> str:
     """A configuration field for a radio input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         options (:obj:`list` of :obj:`str`): The options for the radio.
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
@@ -464,6 +524,7 @@ def Radio(description: str, options: List[str], default: str = "", name: Optiona
     index = options.index(default) if default in options else 0
 
     return Field(
+        label=label,
         description=description,
         default=index,
         type=SettingType.RADIO,
@@ -474,24 +535,31 @@ def Radio(description: str, options: List[str], default: str = "", name: Optiona
     )  # type: ignore[return-value]
 
 
-def ListString(description: str, default: List[str] = [], name: Optional[str] = None) -> List[str]:
+def ListString(
+    label: str, description: Optional[str] = "", default: List[str] = [], name: Optional[str] = None
+) -> List[str]:
     """A configuration field for managable list of strings input
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`list` of :obj:`str`: A field object which will be replaced by
             the value of the setting on config initialization
     """
-    return Field(description=description, default=default, type=SettingType.LIST_STRING, name=name)  # type: ignore[return-value]
+    return Field(label=label, description=description, default=default, type=SettingType.LIST_STRING, name=name)  # type: ignore[return-value]
 
 
 def File(
-    description: str,
+    label: str,
+    description: Optional[str] = "",
     default: Union[str, Path] = "",
     chooser: FileChooser = FileChooser.FILE,
     name: Optional[str] = None,
@@ -502,8 +570,12 @@ def File(
 
     .. versionadded:: 0.3.0
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
         file_chooser (:obj:`npc.types.FileChooser`, optional): The file chooser type.
@@ -524,6 +596,7 @@ def File(
         return str(value)
 
     return Field(
+        label=label,
         description=description,
         default=default,
         type=SettingType.FILE,
@@ -534,15 +607,21 @@ def File(
     )  # type: ignore[return-value]
 
 
-def Folder(description: str, default: Union[str, Path] = "", name: Optional[str] = None) -> Path:
+def Folder(
+    label: str, description: Optional[str] = "", default: Union[str, Path] = "", name: Optional[str] = None
+) -> Path:
     """A configuration field for a folder input
 
     Will handle folders as :obj:`pathlib.Path` objects instead of strings.
 
     .. versionadded:: 0.3.1 Quick alias for :func:`File` with :attr:`npc.types.FileChooser.FOLDER`
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`): The name of the setting.
@@ -551,21 +630,27 @@ def Folder(description: str, default: Union[str, Path] = "", name: Optional[str]
         :obj:`pathlib.Path`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return File(description=description, default=default, chooser=FileChooser.FOLDER, name=name)
+    return File(label=label, description=description, default=default, chooser=FileChooser.FOLDER, name=name)
 
 
 Directory = Folder
 
 
-def Image(description: str, default: Union[str, Path] = "", name: Optional[str] = None) -> Path:
+def Image(
+    label: str, description: Optional[str] = "", default: Union[str, Path] = "", name: Optional[str] = None
+) -> Path:
     """A configuration field for an image input
 
     Will handle images as :obj:`pathlib.Path` objects instead of strings.
 
     .. versionadded:: 0.3.1 Quick alias for :func:`File` with :attr:`npc.types.FileChooser.IMAGE`
 
+    .. versionchanged:: 0.4.0
+       Added ``label`` parameter and made ``description`` optional.
+
     Args:
-        description (:obj:`str`): The description of the setting.
+        label (str): The label of the setting.
+        description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
         name (:obj:`str`): The name of the setting.
@@ -574,4 +659,4 @@ def Image(description: str, default: Union[str, Path] = "", name: Optional[str] 
         :obj:`pathlib.Path`: A field object which will be replaced by the value of the
             setting on config initialization
     """
-    return File(description=description, default=default, chooser=FileChooser.IMAGE, name=name)
+    return File(label=label, description=description, default=default, chooser=FileChooser.IMAGE, name=name)

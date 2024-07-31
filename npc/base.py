@@ -125,10 +125,10 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             verbose (:obj:`Bool`): Verbose logging
         """
 
-        check_update = Bool(description="Check for updates", default=True)
-        check_update_interval = Int(description="Update check interval (minutes)", default=60 * 6)
-        preview_versions = Bool(description="Check for preview versions", default="dev" in __version__)
-        verbose = Bool(description="Verbose logging", default=True)
+        check_update = Bool("Check for updates", default=True)
+        check_update_interval = Int("Update check interval (minutes)", default=60 * 6)
+        preview_versions = Bool("Check for preview versions", default="dev" in __version__)
+        verbose = Bool("Verbose logging", default=True)
 
     settings: Settings
     metasettings: MetaSettings
