@@ -1,6 +1,25 @@
 Changelog
 =========
 
+0.4.0
+-----
+
+* Added: [:mod:`npc.changes`] [:data:`npc.IS_DEV`] Explicit flag for development versions
+* Changed: [:class:`npc.config.Field`] Added ``label`` parameter and made ``description`` optional.
+* Added: [:meth:`npc.config.Field.metasettings_description`] Added property combining label and description
+* Changed: [:func:`npc.String`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Int`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Float`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Bool`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.TextView`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Dropdown`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Radio`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.ListString`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.File`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Folder`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.Image`] Added ``label`` parameter and made ``description`` optional.
+* Changed: [:func:`npc.info.load_config`] Return whether the plugin is a development version
+
 0.3.6
 -----
 
