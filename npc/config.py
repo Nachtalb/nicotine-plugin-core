@@ -200,9 +200,9 @@ class Field:
         label (:obj:`str`): The label of the setting.
         default (:obj:`typing.Any`): The default value of the setting.
         type (:obj:`npc.types.SettingType`): The type of the setting.
-        name (:obj:`str`, optional): The name of the setting. If not provided it
-        will later be set by the BaseConfig.
         description (:obj:`str`, optional): The description of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
+            Does not need to be provided. By default it will use the variable name.
         to_value (:obj:`typing.Callable`, optional): A function to get the value of
             the setting.
         from_value (:obj:`typing.Callable`, optional): A function to set the value of
@@ -210,7 +210,8 @@ class Field:
         **options (:obj:`typing.Any`): Additional options for the setting.
 
     Attributes:
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
+        label (:obj:`str`): The label of the setting.
         description (:obj:`str`): The description of the setting.
         default (:obj:`typing.Any`): The default value of the setting.
         type (:obj:`npc.types.SettingType`): The type of the setting.
@@ -316,7 +317,7 @@ def String(label: str, description: Optional[str] = "", default: str = "", name:
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`, optional): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`str`: A field object which will be replaced by the value of the
@@ -347,7 +348,7 @@ def Int(
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
         maximum (:obj:`int`, optional): The maximum value of the setting.
             Defaults to 9999999.
         minimum (:obj:`int`, optional): The minimum value of the setting.
@@ -393,7 +394,7 @@ def Float(
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`, optional): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
         maximum (:obj:`float`, optional): The maximum value of the setting.
             Defaults to 9999999.0.
         minimum (:obj:`float`, optional): The minimum value of the setting.
@@ -430,7 +431,7 @@ def Bool(label: str, description: Optional[str] = "", default: bool = False, nam
         label (str): The label of the setting.
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting. Defaults to "".
-        name (:obj:`str`, optional): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`bool`: A field object which will be replaced by the value of the
@@ -456,7 +457,7 @@ def TextView(label: str, description: Optional[str] = "", default: str = "", nam
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`str`: A field object which will be replaced by the value of the
@@ -482,7 +483,7 @@ def Dropdown(
         options (:obj:`list` of :obj:`str`): The options for the dropdown.
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`str`: A field object which will be replaced by the value of the
@@ -507,7 +508,7 @@ def Radio(
         options (:obj:`list` of :obj:`str`): The options for the radio.
         default (:obj:`str`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`str`: A field object which will be replaced by the value of the
@@ -580,7 +581,7 @@ def File(
             Defaults to "".
         file_chooser (:obj:`npc.types.FileChooser`, optional): The file chooser type.
             Defaults to :attr:`npc.types.FileChooser.FILE`.
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`pathlib.Path`: A field object which will be replaced by the value of the
@@ -624,7 +625,7 @@ def Folder(
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`pathlib.Path`: A field object which will be replaced by the value of the
@@ -653,7 +654,7 @@ def Image(
         description (:obj:`str`, optional): The description of the setting. Defaults to "".
         default (:obj:`str` | :obj:`pathlib.Path`, optional): The default value of the setting.
             Defaults to "".
-        name (:obj:`str`): The name of the setting.
+        name (:obj:`str`, optional): The name of the setting in the :attr:`npc.BasePlugin.settings` dict.
 
     Returns:
         :obj:`pathlib.Path`: A field object which will be replaced by the value of the
