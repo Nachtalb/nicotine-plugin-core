@@ -20,7 +20,7 @@ import sys
 from abc import ABC
 from textwrap import dedent
 from threading import Thread
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
@@ -255,6 +255,12 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
     def plugin_name(self) -> str:
         """Return the plugin name"""
         return self.plugin_config.get("name", self.plugin_identifier)
+
+    @command
+    def verbose(self) -> None:
+        """Toggle verbose logging"""
+        self.config.verbose = not self.config.verbose
+        self.config.apply()
 
     @command(daemonize=False)
     def reload(self) -> None:
