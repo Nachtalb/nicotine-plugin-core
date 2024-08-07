@@ -405,7 +405,7 @@ def command(
 
         @wraps(func)
         def legacy_wrapper(self: "BasePlugin", source: str, args: str) -> Optional[ReturnCode]:
-            LOGGER.info(f"Legacy Command: {name}, Args: {args}, Source: {source}")
+            LOGGER.debug(f"Legacy Command: {name}, Args: {args}, Source: {source}")
 
             if is_function_in_stacktrace("trigger_public_command_event"):
                 room = source
@@ -420,10 +420,10 @@ def command(
                     final_args = parse_cmd_args(args, room, user)
                 except ValueError:
                     return ReturnCode.PASS
-                LOGGER.info(f"Legacy Command: {name}, Args: {final_args} - Parsed")
+                LOGGER.debug(f"Legacy Command: {name}, Args: {final_args} - Parsed")
             else:
                 final_args = [args, room, user]
-                LOGGER.info(f"Legacy Command: {name}, Args: {args} - Not Parsed")
+                LOGGER.debug(f"Legacy Command: {name}, Args: {args} - Not Parsed")
 
             return run_func((self, *final_args))
 
@@ -437,10 +437,10 @@ def command(
                     final_args = parse_cmd_args(args, room, user)
                 except ValueError:
                     return ReturnCode.PASS
-                LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Parsed")
+                LOGGER.debug(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Parsed")
             else:
                 final_args = [args, room, user]
-                LOGGER.info(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Not Parsed")
+                LOGGER.debug(f"Command: {name}, Args: {final_args}, Room: {room}, User: {user} - Not Parsed")
 
             return run_func((self, *final_args))
 
