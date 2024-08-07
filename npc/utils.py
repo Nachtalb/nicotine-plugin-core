@@ -43,32 +43,36 @@ def startfile(file: str) -> None:
         subprocess.call(("xdg-open", file))
 
 
-def reload_plugin(name: str, plugin_name: str, handler: PluginHandler) -> bool:
+def reload_plugin(name: str, plugin_id: str, handler: PluginHandler) -> bool:
     """Reload a plugin
+
+    .. versionchanged:: 0.4.1 Changed :paramref:`plugin_name` to :paramref:`plugin_id` as it is more accurate
 
     Args:
         name (:obj:`str`): Name of the plugin reloading the plugin
-        plugin_name (:obj:`str`): Name of the plugin to be reloaded
+        plugin_id (:obj:`str`): Identifier of the plugin in the plugin handler
         handler (:obj:`PluginHandler`): Plugin handler
             .. seealso:: `PluginHandler <https://github.com/nicotine-plus/nicotine-plus/blob/f9eb76a706a8def652d26173f1ce5df778259cfd/pynicotine/pluginsystem.py#L371>`_
 
     Returns:
         :obj:`bool`: Whether the plugin was successfully reloaded
     """
-    log(f"# {name}: Disabling plugin {plugin_name}...")
+    log(f"# {name}: Disabling plugin {plugin_id}...")
     sleep(1)
     try:
-        handler.disable_plugin(plugin_name)
+        for plugin in handler.enabled_plugins:
+            log(f"# {plugin}: {handler.enabled_plugins[plugin].path}")
+        handler.disable_plugin(plugin_id)
     except Exception as e:
-        log(f"# {name}: Failed to reload plugin {plugin_name}:\n{e}", title="Plugin Reload")
+        log(f"# {name}: Failed to reload plugin {plugin_id}:\n{e}", title="Plugin Reload")
         return False
-    log(f"# {name}: Enabling plugin {plugin_name}...")
+    log(f"# {name}: Enabling plugin {plugin_id}...")
     try:
-        handler.enable_plugin(plugin_name)
+        handler.enable_plugin(plugin_id)
     except Exception as e:
-        log(f"# {name} Failed to reload plugin {plugin_name}:\n{e}", title="Plugin Reload")
+        log(f"# {name} Failed to reload plugin {plugin_id}:\n{e}", title="Plugin Reload")
         return False
-    log(f"# {name}: Successfully reloaded plugin {plugin_name}", title="Plugin Reload")
+    log(f"# {name}: Successfully reloaded plugin {plugin_id}", title="Plugin Reload")
     return True
 
 

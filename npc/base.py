@@ -18,7 +18,6 @@ import logging
 import re
 import sys
 from abc import ABC
-from pathlib import Path
 from textwrap import dedent
 from threading import Thread
 from typing import Any, List, Optional, Set, Tuple, Union
@@ -78,6 +77,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
     .. versionremoved:: 0.2.0 Removed :meth:`npc.BasePlugin.vlog` in favour of the
         :attr:`npc.BasePlugin.log` logger instance. Use ``self.log.debug(...)`` instead.
+
+    .. versionremoved:: 0.4.1 Removed :meth:`npc.BasePlugin.__name__` in favour of
+        :attr:`npc.BasePlugin.plugin_name`.
 
     Attributes:
         settings (:obj:`npc.types.Settings`): Plugin settings dictionary. Don't override
@@ -141,10 +143,6 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
     _informed_about_update: bool = False
 
-    @property
-    def __name__(self) -> str:
-        return self.plugin_config.get("name", self.__class__.__name__)  # type: ignore[return-value]
-
     def __init__(self) -> None:
         # Settings changed by the user are not available yet!
         self.config = self.Config(self)
@@ -156,7 +154,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             "%(name)s - %(levelname)s - %(message)s"
         )  # %(asctime)s not needed as it's already added by n+
         handler.setFormatter(format)
-        self.log = logging.Logger(self.__name__)
+        self.log = logging.Logger(self.plugin_name)
         self.log.addHandler(handler)
 
         self._setup_commands()
@@ -169,7 +167,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
         self.log.debug("Initializing plugin")
         self.log.info(
-            f"Running {self.__name__} plugin version {self.plugin_config['version']} on Nicotine+ {NICOTINE_VERSION}{' (legacy)' if IS_LEGACY else ''} with Python {sys.version}"
+            f"Running {self.plugin_name} plugin version {self.plugin_config['version']} on Nicotine+ {NICOTINE_VERSION}{' (legacy)' if IS_LEGACY else ''} with Python {sys.version}"
         )
         self.auto_update = PeriodicJob(
             name="AutoUpdate",
@@ -212,7 +210,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 command_list.append(f"/{command_name}{command_args}: {command.get('description', 'No description')}")
 
         commands = "- " + "\n- ".join(command_list)
-        self.log.info(f"Commands for {self.__name__}:\n{commands}")
+        self.log.info(f"Commands for {self.plugin_name}:\n{commands}")
 
     def _setup_commands(self) -> None:
         """Setup commands from methods decorated with @command
@@ -243,14 +241,25 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.log.debug(f"Commands setup complete: {self.commands}")
 
     @property
+    def plugin_identifier(self) -> str:
+        """Return the plugin path name which is the internal identifier
+
+        .. versionadded:: 0.4.1 Added plugin identifier
+
+        Returns:
+            :obj:`str`: Plugin identifier
+        """
+        return BASE_PATH.name
+
+    @property
     def plugin_name(self) -> str:
         """Return the plugin name"""
-        return self.__name__
+        return self.plugin_config.get("name", self.plugin_identifier)
 
     @command(daemonize=False)
     def reload(self) -> None:
         """Reload the plugin"""
-        Thread(target=reload_plugin, daemon=True, args=(self.__name__, self.plugin_name, self.parent)).start()
+        Thread(target=reload_plugin, daemon=True, args=(self.plugin_name, self.plugin_identifier, self.parent)).start()
 
     @command(daemonize_return=ReturnCode.ZAP)
     def check_update(self) -> None:
@@ -318,7 +327,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                     self.window(
                         dedent(
                             f"""
-                        A new version of the plugin \"{self.__name__}\" is available:
+                        A new version of the plugin \"{self.plugin_name}\" is available:
                         - Current version: {current_version}
                         - New version: {version}
                         """
@@ -332,27 +341,39 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         return None
 
     def stop(self) -> None:
-        """Stop the plugin and clean up"""
+        """Stop the plugin and clean up
+
+        .. versionchanged:: 0.4.1 Fix unloading of modules
+        """
         if hasattr(self, "pre_stop"):
             self.pre_stop()
         self.auto_update.stop(wait=False)
         self.settings_watcher.stop(wait=False)
 
         # Module injection cleanup
-        module_path = str(BASE_PATH.absolute())
+        module_path = str(BASE_PATH)
+        self.log.debug(f"Module Path to remove: {module_path}")
+
         if module_path in sys.path:
+            self.log.debug(f"Removing module path {module_path}")
             sys.path.remove(module_path)
 
-        for name in list(sys.modules.keys())[:]:
-            if name.startswith(Path(__file__).parent.name):
+        module_name = self.__class__.__module__.split(".")[0]
+        self.log.debug(f"Module cleanup for {module_name}")
+
+        for index, name in enumerate(list(sys.modules.keys())[:]):
+            if name == module_name or name.startswith(f"{module_name}."):
+                self.log.debug(f"Unloading module {name}")
                 sys.modules.pop(name)
 
     def shutdown_notification(self) -> None:
         """Notification that the plugin is being shutdown"""
+        self.log.info("Shutting down plugin")
         self.stop()
 
     def disable(self) -> None:
         """Disable the plugin"""
+        self.log.info("Disabling plugin")
         self.stop()
 
     def _settings_to_set(self, settings: Settings) -> Set[Tuple[str, Any]]:
@@ -454,7 +475,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
             title (:obj:`str`, optional): Title of the window. Defaults to the plugin name.
         """
         if not title:
-            title = self.__name__
+            title = self.plugin_name
         else:
-            title = f"{self.__name__}: {title}"
+            title = f"{self.plugin_name}: {title}"
         log(message, title=title)
