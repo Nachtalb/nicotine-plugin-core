@@ -20,7 +20,7 @@ import sys
 from abc import ABC
 from textwrap import dedent
 from threading import Thread
-from typing import Any, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
@@ -269,16 +269,21 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
         .. versionchanged:: 0.5.0 Always show the update window not only on the first run
         """
-        current, new = self._check_update(self.config.preview_versions)
+        current, new = self._check_update(self.config.preview_versions, {"type": "manual"})
         self._show_update_window(current, new)
 
-    def update_available(self, old_version: Version, new_version: Version) -> None:
+    def update_available(self, old_version: Version, new_version: Version, context: Dict[str, Any] = {}) -> None:
         """Override this function to handle an available update
 
         Note:
             This is run before any window is shown to the user about the update.
 
         .. versionadded:: 0.5.0 Hook to handle available updates for plugins that need it
+
+        Args:
+            old_version (:obj:`Version`): Current version
+            new_version (:obj:`Version`): New version
+            context (:obj:`dict`, optional): Additional information about the update
         """
 
     def _gh_user_repo(self) -> Tuple[str, str]:
@@ -325,7 +330,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         and shows a window if an update is available.
         """
         if self.config.check_update:
-            current, new = self._check_update(self.config.preview_versions)
+            current, new = self._check_update(self.config.preview_versions, {"type": "auto"})
 
             if new:
                 if not self._informed_about_update:
@@ -355,11 +360,14 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         else:
             self.window("No updates available", title="Update check")
 
-    def _check_update(self, check_prerelease: bool = False) -> Tuple[Version, Optional[Version]]:
+    def _check_update(
+        self, check_prerelease: bool = False, context: Dict[str, Any] = {}
+    ) -> Tuple[Version, Optional[Version]]:
         """Actual update check implementation
 
         Args:
             check_prerelease (:obj:`bool`, optional): Check for pre releases versions. Defaults to False.
+            context (:obj:`dict`, optional): Additional information to pass to the update hook
 
         Returns:
             :obj:`tuple` of :obj:`Version`, :obj:`Version`: Current version and new version if available
@@ -394,7 +402,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 continue
 
             if version > current_version:
-                self.update_available(current_version, version)
+                self.update_available(current_version, version, context=context)
                 return current_version, version
         return current_version, None
 
