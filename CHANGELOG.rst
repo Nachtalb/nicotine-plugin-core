@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.4.1
+-----
+
+* Removed: [:class:`npc.BasePlugin`] Removed :meth:`npc.BasePlugin.__name__` in favour of :attr:`npc.BasePlugin.plugin_name`.
+* Added: [:meth:`npc.BasePlugin.plugin_identifier`] Added plugin identifier
+* Changed: [:meth:`npc.BasePlugin.stop`] Fix unloading of modules
+* Changed: [:func:`npc.reload_plugin`] Changed :paramref:`plugin_name` to :paramref:`plugin_id` as it is more accurate
+
 0.4.0
 -----
 
