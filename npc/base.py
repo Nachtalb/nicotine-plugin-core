@@ -266,32 +266,36 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """Check for updates
 
         .. versionchanged:: 0.3.6 Show window if no updates are available
+
+        .. versionchanged:: 0.5.0 Always show the update window not only on the first run
         """
-        if self._check_update(self.config.preview_versions) is None:
-            self.window("No updates available", title="Update check")
+        current, new = self._check_update(self.config.preview_versions)
+        self._show_update_window(current, new)
 
-    def _check_update(self, preview: bool = False) -> Union[None, Version]:
-        """Actual update check implementation
+    def update_available(self, old_version: Version, new_version: Version) -> None:
+        """Override this function to handle an available update
 
-        Args:
-            preview (bool, optional): Whether to check for preview releases.
-                Defaults to False.
+        Note:
+            This is run before any window is shown to the user about the update.
+
+        .. versionadded:: 0.5.0 Hook to handle available updates for plugins that need it
+        """
+
+    def _gh_user_repo(self) -> Tuple[str, str]:
+        """Return the GitHub user and repository
 
         Returns:
-            :obj:`npc.Version` | :obj:`None`: Latest version if not updated
+            :obj:`tuple` of :obj:`str`: GitHub user and repository
+
+        Raises:
+            :obj:`ValueError`: If the repository URL is invalid or not set
         """
         repo_url = self.plugin_config.get("repository")
         if not repo_url:
-            self.log.info("No repository defined for this plugin, disabling update check")
-            self.config.check_update = False
-            self.config.apply()
-            return None
-
-        if repo_url.startswith("http"):
-            match = re.match(r"https?://github.com/([^/]+)/([^/]+)", repo_url)
-            if match:
-                user = match.group(1)
-                repo = match.group(2)
+            raise ValueError("No repository defined for this plugin")
+        if "github.com" in repo_url:
+            if match := re.search(r"github.com(?::|/)([^/]+)/([^/]+)", repo_url):
+                user, repo = match.groups()
             else:
                 raise ValueError("Invalid repository URL")
         else:
@@ -299,21 +303,88 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 user, repo = repo_url.split("/")
             except ValueError as e:
                 raise ValueError("Invalid repository configuration") from e
+        return user, repo
 
-        releases_url = f"https://api.github.com/repos/{user}/{repo}/releases"
+    def _gh_api_releases_url(self) -> str:
+        """Return the GitHub release URL for a version
+
+        Returns:
+            :obj:`str`: GitHub release URL
+
+        Raises:
+            :obj:`ValueError`: If the repository URL is invalid or not set
+        """
+        user, repo = self._gh_user_repo()
+        return f"https://api.github.com/repos/{user}/{repo}/releases"
+
+    def _automatic_update_check(self) -> None:
+        """Automatic update check function
+
+        This function is called by the :attr:`BasePlugin.auto_update` job to
+        check for updates. It calls the :meth:`BasePlugin._check_update` function
+        and shows a window if an update is available.
+        """
+        if self.config.check_update:
+            current, new = self._check_update(self.config.preview_versions)
+
+            if new:
+                if not self._informed_about_update:
+                    self._show_update_window(current, new)
+                    self._informed_about_update = True
+                self.log.info(f"New version available: {current} -> {new}")
+            self.log.info(f"Using latest version: {current}")
+
+    def _show_update_window(self, old_version: Version, new_version: Optional[Version]) -> None:
+        """Show a window with the available update
+
+        Args:
+            old_version (:obj:`Version`): Current version
+            new_version (:obj:`Version`, optional): New version or None if no update is available
+        """
+        if new_version:
+            self.window(
+                dedent(
+                    f"""
+                A new version of the plugin \"{self.plugin_name}\" is available:
+                - Current version: {old_version}
+                - New version: {new_version}
+                """
+                ),
+                title="Update check",
+            )
+        else:
+            self.window("No updates available", title="Update check")
+
+    def _check_update(self, check_prerelease: bool = False) -> Tuple[Version, Optional[Version]]:
+        """Actual update check implementation
+
+        Args:
+            check_prerelease (:obj:`bool`, optional): Check for pre releases versions. Defaults to False.
+
+        Returns:
+            :obj:`tuple` of :obj:`Version`, :obj:`Version`: Current version and new version if available
+        """
+        current_version = Version.parse(__version__)
+
         try:
-            current_version = Version.parse(__version__)
+            releases_url = self._gh_api_releases_url()
         except ValueError:
-            self.log.warning(f"Invalid version format: {__version__}")
-            return None
+            self.log.info("No repository defined for this plugin, disabling update check")
+            self.config.check_update = False
+            self.config.apply()
+            return current_version, None
 
         try:
             response = get(releases_url)
         except Exception as e:
             self.log.warning(f"Error fetching releases: {e}")
-            return None
+            return current_version, None
+
         for release in response.json:
-            if not preview and (release["draft"] or release["prerelease"]):
+            if release["draft"]:
+                continue
+
+            if not check_prerelease and release["prerelease"]:
                 continue
 
             try:
@@ -323,22 +394,9 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
                 continue
 
             if version > current_version:
-                if not self._informed_about_update:
-                    self.window(
-                        dedent(
-                            f"""
-                        A new version of the plugin \"{self.plugin_name}\" is available:
-                        - Current version: {current_version}
-                        - New version: {version}
-                        """
-                        ),
-                        title="Update available",
-                    )
-                else:
-                    self.log.info(f"New version available: {current_version} -> {version}")
-                self._informed_about_update = True
-                return version
-        return None
+                self.update_available(current_version, version)
+                return current_version, version
+        return current_version, None
 
     def stop(self) -> None:
         """Stop the plugin and clean up
