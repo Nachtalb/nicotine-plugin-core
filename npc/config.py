@@ -177,10 +177,10 @@ class BaseConfig:
         """
         marker = object()
         changed = []
-        plugin_name = self.model_plugin.plugin_name.lower()
+        plugin_id = self.model_plugin.plugin_identifier.lower()
         for name, value in self.model_plugin.settings.items():
-            if value != NConfig.sections["plugins"][plugin_name].get(name, marker):
-                NConfig.sections["plugins"][plugin_name][name] = value
+            if value != NConfig.sections["plugins"][plugin_id].get(name, marker):
+                NConfig.sections["plugins"][plugin_id][name] = value
                 changed.append(name)
         return changed
 
