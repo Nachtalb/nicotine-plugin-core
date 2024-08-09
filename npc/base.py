@@ -93,7 +93,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         plugin_config (:obj:`npc.types.PluginConfig`): Information about the plugin itself,
             such as the name, version and authors.
         auto_update (:obj:`npc.PeriodicJob`): Periodic job for checking if the
-            plugin is up to date. It runs the :meth:`BasePlugin.check_update`
+            plugin is up to date. It runs the :meth:`BasePlugin._automatic_update_check`
             function every :attr:`BasePlugin.Config.check_update_interval` seconds.
         settings_watcher (:obj:`npc.PeriodicJob`): Periodic job for watching changes
             in the settings. It runs the :meth:`BasePlugin.detect_settings_change`
@@ -171,8 +171,8 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         )
         self.auto_update = PeriodicJob(
             name="AutoUpdate",
-            delay=self.config.check_update_interval * 60,
-            update=self._check_update,
+            delay=self._automatic_update_check_delay,
+            update=self._automatic_update_check,
         )
         self.auto_update.start()
 
@@ -327,6 +327,17 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
         user, repo = self._gh_user_repo()
         return f"https://api.github.com/repos/{user}/{repo}/releases"
+
+    def _automatic_update_check_delay(self) -> int:
+        """Return the delay for the automatic update check
+
+        .. versionchanged:: 0.4.2 Fix automatic update delay not reflected when
+            changing the interval
+
+        Returns:
+            :obj:`int`: Delay in seconds
+        """
+        return self.config.check_update_interval * 60
 
     def _automatic_update_check(self) -> None:
         """Automatic update check function
