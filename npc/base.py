@@ -128,7 +128,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
 
         check_update = Bool("Check for updates", default=True)
-        check_update_interval = Int("Update check interval (minutes)", default=60 * 6)
+        check_update_interval = Int("Update check interval (minutes)", default=60 * 6, minimum=1)
         preview_versions = Bool("Check for preview versions", default=IS_DEV)
         verbose = Bool("Verbose logging", default=True)
 
