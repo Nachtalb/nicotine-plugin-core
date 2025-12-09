@@ -24,8 +24,27 @@ Note:
 """
 
 import ast
-import configparser
 import sys
+
+try:
+    import tomllib
+except ImportError:
+    # Hope this works :)
+    try:
+        from pip._vendor import tomli as tomllib
+    except ImportError:
+        try:
+            import tomli as tomllib
+        except ImportError:
+            from pynicotine.logfacility import log
+
+            log(
+                "This setup is not supported. I require python package tomllib to work",
+                title="Nachtalb's Nictoine+ Plugin Core",
+            )
+            raise
+
+
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -51,6 +70,7 @@ __all__ = ["BASE_PATH", "CONFIG", "__version__", "IS_LEGACY", "NICOTINE_VERSION"
 def load_config(path: Path) -> Tuple[PluginConfig, bool]:
     """Load the plugin configuration from the given file
 
+    .. versionchanged:: 0.5.0 Move to agnostic pyproject instead of poetry specific
     .. versionchanged:: 0.4.0 Return whether the plugin is a development version
 
     Args:
@@ -80,9 +100,9 @@ def load_config(path: Path) -> Tuple[PluginConfig, bool]:
     if version.is_prerelease:
         if config["prefix"]:
             nlog.add(
-                f'{config["name"]} - WARNING - Attention: You are running this plugin in dev mode. '
-                f'Prefix will be /d{config["prefix"]} instead of /{config["prefix"]} to prevent '
-                'conflicts with the stable version.'
+                f"{config['name']} - WARNING - Attention: You are running this plugin in dev mode. "
+                f"Prefix will be /d{config['prefix']} instead of /{config['prefix']} to prevent "
+                "conflicts with the stable version."
             )
             config["prefix"] = "d" + config["prefix"]
         config["name"] += " DEV"
@@ -117,12 +137,32 @@ def load_npc_package_config() -> PluginConfig:
     """
     pyproject = find_file_in_parents("pyproject.toml", Path(__file__).parent)
     if pyproject:
-        config = configparser.ConfigParser()
-        config.read(str(pyproject))
+        with open(pyproject, "rb") as f:
+            data = tomllib.load(f)
 
-        for option in ["name", "description", "author", "version"]:
-            if config.has_option("tool.poetry", option):
-                FALLBACK_CONFIG[option] = ast.literal_eval(config.get("tool.poetry", option))  # type: ignore[literal-required]
+        project = data.get("project", {})
+
+        # Map standard PEP 621 [project] keys to PluginConfig keys
+        if "name" in project:
+            FALLBACK_CONFIG["name"] = project["name"]
+
+        if "description" in project:
+            FALLBACK_CONFIG["description"] = project["description"]
+
+        if "version" in project:
+            FALLBACK_CONFIG["version"] = project["version"]
+
+        # PEP 621 'authors' is a list of dicts: [{name="...", email="..."}]
+        # We need to extract the names to match the PluginConfig 'author' list of strings.
+        if "authors" in project:
+            author_names = []
+            for author in project["authors"]:
+                if isinstance(author, dict) and "name" in author:
+                    author_names.append(author["name"])
+
+            if author_names:
+                FALLBACK_CONFIG["author"] = author_names
+
     return FALLBACK_CONFIG
 
 
