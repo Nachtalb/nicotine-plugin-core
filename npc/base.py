@@ -365,13 +365,11 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """
         if new_version:
             self.window(
-                dedent(
-                    f"""
+                dedent(f"""
                 A new version of the plugin \"{self.plugin_name}\" is available:
                 - Current version: {old_version}
                 - New version: {new_version}
-                """
-                ),
+                """),
                 title="Update check",
             )
         else:
