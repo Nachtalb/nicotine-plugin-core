@@ -20,7 +20,7 @@ import sys
 from abc import ABC
 from textwrap import dedent
 from threading import Thread
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
@@ -179,7 +179,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.settings_watcher = PeriodicJob(name="SettingsWatcher", update=self.detect_settings_change)
         self.settings_watcher.start()
 
-        self.log.setLevel("DEBUG" if self.config.verbose else "INFO")
+        self.set_log_level("DEBUG" if self.config.verbose else "INFO")
         # This should be done in the logging module, but for some reason it doesn't work
         # so we have to clear the cache manually
         self.log._cache.clear()  # type: ignore[attr-defined]
@@ -427,11 +427,15 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         """Stop the plugin and clean up
 
         .. versionchanged:: 0.4.1 Fix unloading of modules
+        .. versionchanged:: 0.5.0 Stop all running periodic jobs (incl. ones
+                                  not created by the base plugin)
         """
         if hasattr(self, "pre_stop"):
             self.pre_stop()
-        self.auto_update.stop(wait=False)
-        self.settings_watcher.stop(wait=False)
+
+        self.log.info("Stopping active jobs")
+        for job in PeriodicJob.all_jobs:
+            job.stop(wait=False)
 
         # Module injection cleanup
         module_path = str(BASE_PATH)
@@ -519,6 +523,21 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
 
             self._settings_before = after
 
+    def set_log_level(self, level: Union[str, int]) -> None:
+        """Set plugin and adjacent logging levels
+
+        .. versionadded: 0.5.0 Set plugin and adjacent logging levels
+
+        Args:
+            level (:obj:`str` | :obj:`int`): Logging level to set
+        """
+        self.log.setLevel(level)
+        # This should be done in the logging module, but for some reason it doesn't work
+        # so we have to clear the cache manually
+        self.log._cache.clear()  # type: ignore[attr-defined]
+        for job in PeriodicJob.all_jobs:
+            job.set_log_level(level)
+
     def settings_changed(self, before: Settings, after: Settings, change: SettingsDiff) -> None:
         """Called when settings are changed
 
@@ -527,6 +546,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         and updates the log level if the verbose setting is changed.
 
         .. versionchanged:: 0.3.4 Fixed still logging debug messages when verbose is disabled
+        .. versionchanged:: 0.5.0 Also adjust logging for periodic jobs
 
         Args:
             before (:obj:`npc.types.Settings`): Complete settings before the change
@@ -536,12 +556,7 @@ class BasePlugin(NBasePlugin, ABC):  # type: ignore[misc]
         self.log.info(f"Settings change: {json.dumps(change)}")
 
         if "verbose" in change["after"]:
-            new_level = logging.DEBUG if change["after"]["verbose"] else logging.INFO
-            self.log.setLevel(new_level)
-            # This should be done in the logging module, but for some reason it doesn't work
-            # so we have to clear the cache manually
-            self.log._cache.clear()  # type: ignore[attr-defined]
-
+            self.set_log_level(logging.DEBUG if change["after"]["verbose"] else logging.INFO)
             self.log.info(f"Verbose logging {'enabled' if self.config.verbose else 'disabled'}")
 
     def window(self, message: str, title: Optional[str] = None) -> None:
