@@ -92,9 +92,9 @@ build it yourself locally.
 ```sh
 git clone https://github.com/Nachtalb/npc.git
 cd npc
-poetry install --with docs
-poetry run build-docs
-poetry run open-docs
+uv sync --all-extras --editable
+uv run build-docs
+uv run open-docs
 ```
 
 Once you've built and opened the documentation, you will find a guide on how to

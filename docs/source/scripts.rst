@@ -2,13 +2,13 @@ Scripts
 =======
 
 This package provides custom scripts for a variety of tasks. The scripts are
-defined mainly in ``scripts.py`` and are set up with poetry to be used as commands.
+defined mainly in ``scripts.py`` and are set up with `uv <https://docs.astral.sh/uv>`` to be used as commands.
 
 All of these scripts can be copied over to your own project, given you provide
 them the proper structure. Each section has a note on how to do that.
 Each section also has a file defined if applicable. This file is the actual script
 the commands used to run the scripts in the examples, are the ones defined and
-provided by poetry in the ``pyproject.toml`` file.
+provided by ``uv`` in the ``pyproject.toml`` file.
 
 Generate Changelog
 ------------------
@@ -66,14 +66,14 @@ done by running the following command:
 
 .. code-block:: sh
 
-    poetry install --with docs
+    uv sync --all-extras --editable
 
 After the dependencies are installed you can generate the documentation by
 running the following command:
 
 .. code-block:: sh
 
-    build-docs
+    uv run build-docs
 
 This command also generates the changelog, as mentioned in the previous section.
 The documentation is built simply by running Sphinx's ``make html`` command.
